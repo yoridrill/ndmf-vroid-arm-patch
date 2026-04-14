@@ -46,6 +46,7 @@ namespace NDMFVRoidArmPatch.Editor
         private SerializedProperty upperArmTwistWeightProp;
 
         private SerializedProperty enableWristFixProp;
+        private SerializedProperty wristPositionOffsetProp;
         private SerializedProperty wristThicknessScaleProp;
         private SerializedProperty wristWidthScaleProp;
         private SerializedProperty wristTwistAxisProp;
@@ -75,6 +76,7 @@ namespace NDMFVRoidArmPatch.Editor
             upperArmTwistWeightProp = serializedObject.FindProperty("upperArmTwistWeight");
 
             enableWristFixProp = serializedObject.FindProperty("enableWristFix");
+            wristPositionOffsetProp = serializedObject.FindProperty("wristPositionOffset");
             wristThicknessScaleProp = serializedObject.FindProperty("wristThicknessScale");
             wristWidthScaleProp = serializedObject.FindProperty("wristWidthScale");
             wristTwistAxisProp = serializedObject.FindProperty("wristTwistAxis");
@@ -258,6 +260,15 @@ namespace NDMFVRoidArmPatch.Editor
                     )
                 );
                 EditorGUI.PropertyField(valueRect, wristTwistAxisProp, GUIContent.none);
+
+                DrawShoulderSubRow(
+                    T("Position Offset", "Position Offset"),
+                    wristPositionOffsetProp,
+                    T(
+                        "前腕ボーンの位置オフセット。右腕は内部で自動反転して適用されます。",
+                        "Forearm position offset. The right forearm is mirrored internally."
+                    )
+                );
 
                 DrawShoulderSubRow(
                     T("Twist Weight", "Twist Weight"),
