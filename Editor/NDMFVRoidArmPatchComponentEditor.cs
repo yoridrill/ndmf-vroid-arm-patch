@@ -262,18 +262,18 @@ namespace NDMFVRoidArmPatch.Editor
                 EditorGUI.PropertyField(valueRect, wristTwistAxisProp, GUIContent.none);
 
                 DrawShoulderSubRow(
-                    T("Position Offset", "Position Offset"),
-                    wristPositionOffsetProp,
-                    T(
-                        "前腕ボーンの位置オフセット。右腕は内部で自動反転して適用されます。",
-                        "Forearm position offset. The right forearm is mirrored internally."
-                    )
-                );
-
-                DrawShoulderSubRow(
                     T("Twist Weight", "Twist Weight"),
                     wristTwistWeightProp,
                     T("手首の twist を前腕へ伝える強さ。", "How strongly hand twist is transferred to the forearm.")
+                );
+
+                DrawShoulderSubRow(
+                    T("Position Offset", "Position Offset"),
+                    wristPositionOffsetProp,
+                    T(
+                        "前腕ボーンの位置オフセット。",
+                        "Forearm position offset."
+                    )
                 );
 
                 DrawShoulderSubRow(

@@ -266,7 +266,7 @@ namespace NDMFVRoidArmPatch.Editor
                 "R",
                 animator.GetBoneTransform(HumanBodyBones.RightLowerArm),
                 animator.GetBoneTransform(HumanBodyBones.RightHand),
-                MirrorOffsetForRight(settings.wristPositionOffset),
+                settings.wristPositionOffset,
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
