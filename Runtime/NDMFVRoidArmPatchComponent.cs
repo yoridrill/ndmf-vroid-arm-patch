@@ -23,7 +23,7 @@ namespace NDMFVRoidArmPatch
     }
 
     [DisallowMultipleComponent]
-    [AddComponentMenu("NDMF VRoid Arm Patch/NDMF VRoid Arm Patch")]
+    [AddComponentMenu("yoridrill/NDMF VRoid Arm Patch")]
     public sealed class NDMFVRoidArmPatchComponent : MonoBehaviour, IEditorOnly
     {
         [Header("Shoulder")]

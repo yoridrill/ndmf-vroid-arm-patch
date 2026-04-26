@@ -293,7 +293,7 @@ namespace NDMFVRoidArmPatch.Editor
                 thumbEulerOffsetProp,
                 T("Euler Offset", "Euler Offset"),
                 T(
-                    "親指全体に加える回転オフセット。右手は内部で自動反転して適用されます。",
+                    "親指全体に加える回転オフセット。右手は内部で自動反転して適用されます。VRM0.0経由のVRoidは(0,-15,-15)がおすすめです。",
                     "Shared thumb rotation offset. Right side is mirrored internally."
                 )
             );
