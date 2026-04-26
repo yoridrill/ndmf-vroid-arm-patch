@@ -47,6 +47,9 @@ namespace NDMFVRoidArmPatch
         [Tooltip("Enable wrist correction.")]
         public bool enableWristFix = true;
 
+        [Tooltip("Shared forearm position offset.")]
+        public Vector3 wristPositionOffset = Vector3.zero;
+
         [Tooltip("Forearm thickness scale.")]
         public float wristThicknessScale = 1f;
 

@@ -46,6 +46,7 @@ namespace NDMFVRoidArmPatch.Editor
         private SerializedProperty upperArmTwistWeightProp;
 
         private SerializedProperty enableWristFixProp;
+        private SerializedProperty wristPositionOffsetProp;
         private SerializedProperty wristThicknessScaleProp;
         private SerializedProperty wristWidthScaleProp;
         private SerializedProperty wristTwistAxisProp;
@@ -75,6 +76,7 @@ namespace NDMFVRoidArmPatch.Editor
             upperArmTwistWeightProp = serializedObject.FindProperty("upperArmTwistWeight");
 
             enableWristFixProp = serializedObject.FindProperty("enableWristFix");
+            wristPositionOffsetProp = serializedObject.FindProperty("wristPositionOffset");
             wristThicknessScaleProp = serializedObject.FindProperty("wristThicknessScale");
             wristWidthScaleProp = serializedObject.FindProperty("wristWidthScale");
             wristTwistAxisProp = serializedObject.FindProperty("wristTwistAxis");
@@ -263,6 +265,15 @@ namespace NDMFVRoidArmPatch.Editor
                     T("Twist Weight", "Twist Weight"),
                     wristTwistWeightProp,
                     T("手首の twist を前腕へ伝える強さ。", "How strongly hand twist is transferred to the forearm.")
+                );
+
+                DrawShoulderSubRow(
+                    T("Position Offset", "Position Offset"),
+                    wristPositionOffsetProp,
+                    T(
+                        "前腕ボーンの位置オフセット。",
+                        "Forearm position offset."
+                    )
                 );
 
                 DrawShoulderSubRow(

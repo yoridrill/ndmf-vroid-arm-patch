@@ -111,6 +111,7 @@ namespace NDMFVRoidArmPatch.Editor
                 upperArmTwistAxis = component.upperArmTwistAxis,
                 upperArmTwistWeight = component.upperArmTwistWeight,
                 enableWristFix = component.enableWristFix,
+                wristPositionOffset = component.wristPositionOffset,
                 wristThicknessScale = component.wristThicknessScale,
                 wristWidthScale = component.wristWidthScale,
                 wristTwistAxis = component.wristTwistAxis,
@@ -251,6 +252,7 @@ namespace NDMFVRoidArmPatch.Editor
                 "L",
                 animator.GetBoneTransform(HumanBodyBones.LeftLowerArm),
                 animator.GetBoneTransform(HumanBodyBones.LeftHand),
+                settings.wristPositionOffset,
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
@@ -264,6 +266,7 @@ namespace NDMFVRoidArmPatch.Editor
                 "R",
                 animator.GetBoneTransform(HumanBodyBones.RightLowerArm),
                 animator.GetBoneTransform(HumanBodyBones.RightHand),
+                settings.wristPositionOffset,
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
@@ -278,6 +281,7 @@ namespace NDMFVRoidArmPatch.Editor
             string sideLabel,
             Transform originalLowerArm,
             Transform originalHand,
+            Vector3 wristPositionOffset,
             float thicknessScale,
             float widthScale,
             TwistAxis wristTwistAxis,
@@ -292,9 +296,13 @@ namespace NDMFVRoidArmPatch.Editor
                 return;
             }
 
-            var wristDef = CreateChildAlignedBone(
+            var wristLocalOffset = ConvertParentSpaceOffsetToChildLocal(originalLowerArm, wristPositionOffset);
+
+            var wristDef = CreateChildOffsetBone(
                 originalLowerArm.name + "_Wrist_Def",
-                originalLowerArm
+                originalLowerArm,
+                wristLocalOffset,
+                Vector3.zero
             );
 
             wristDef.localScale = BuildWristScaleVector(wristTwistAxis, thicknessScale, widthScale);
@@ -318,7 +326,7 @@ namespace NDMFVRoidArmPatch.Editor
             {
                 Debug.Log(
                     $"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist fix created. " +
-                    $"mode={constraintMode}, thickness={thicknessScale:F3}, width={widthScale:F3}, " +
+                    $"mode={constraintMode}, pos={wristPositionOffset}, thickness={thicknessScale:F3}, width={widthScale:F3}, " +
                     $"twistAxis={wristTwistAxis}, twistWeight={wristTwistWeight:F2}");
             }
         }
@@ -789,6 +797,7 @@ namespace NDMFVRoidArmPatch.Editor
                 upperArmTwistAxis = c.upperArmTwistAxis,
                 upperArmTwistWeight = c.upperArmTwistWeight,
                 enableWristFix = c.enableWristFix,
+                wristPositionOffset = c.wristPositionOffset,
                 wristThicknessScale = c.wristThicknessScale,
                 wristWidthScale = c.wristWidthScale,
                 wristTwistAxis = c.wristTwistAxis,
@@ -831,6 +840,7 @@ namespace NDMFVRoidArmPatch.Editor
             public TwistAxis upperArmTwistAxis;
             public float upperArmTwistWeight;
             public bool enableWristFix;
+            public Vector3 wristPositionOffset;
             public float wristThicknessScale;
             public float wristWidthScale;
             public TwistAxis wristTwistAxis;
