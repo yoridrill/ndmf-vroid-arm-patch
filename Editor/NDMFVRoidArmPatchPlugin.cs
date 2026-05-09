@@ -59,6 +59,10 @@ namespace NDMFVRoidArmPatch.Editor
             }
 
             var replaceMap = new Dictionary<Transform, Transform>();
+            if (settings.verboseLog)
+            {
+                Debug.Log("[NDMF VRoid Arm Patch] Build pass started.");
+            }
 
             if (settings.enableShoulderFix)
             {
@@ -361,10 +365,14 @@ namespace NDMFVRoidArmPatch.Editor
 
             if (verboseLog)
             {
-                Debug.Log(
-                    $"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist fix created. " +
-                    $"mode={constraintMode}, thickness={thicknessScale:F3}, width={widthScale:F3}, " +
-                    $"twistAxis={wristTwistAxis}, twistWeight={wristTwistWeight:F2}");
+                if (twistBoneType == WristTwistBoneType.None)
+                {
+                    Debug.Log($"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist_Def mode active.");
+                }
+                else
+                {
+                    Debug.Log($"[NDMF VRoid Arm Patch] [{sideLabel}] Twist mode active. type={twistBoneType}");
+                }
             }
         }
 
@@ -831,6 +839,22 @@ namespace NDMFVRoidArmPatch.Editor
                 int lowerIdx = Array.IndexOf(smr.bones, lowerArm);
                 int handIdx = Array.IndexOf(smr.bones, hand);
                 if (lowerIdx < 0 && handIdx < 0) continue;
+
+                bool hasArmWeights = false;
+                var originalWeights = smr.sharedMesh.boneWeights;
+                for (int i = 0; i < originalWeights.Length; i++)
+                {
+                    if (GetWeightForBoneIndex(originalWeights[i], lowerIdx) + GetWeightForBoneIndex(originalWeights[i], handIdx) > 1e-6f)
+                    {
+                        hasArmWeights = true;
+                        break;
+                    }
+                }
+                if (!hasArmWeights)
+                {
+                    if (verboseLog) Debug.Log($"[NDMF VRoid Arm Patch] Twist reweight skipped (no forearm/hand weights): {GetPath(smr.transform)}");
+                    continue;
+                }
 
                 var mesh = UnityEngine.Object.Instantiate(smr.sharedMesh);
                 mesh.name = smr.sharedMesh.name + "_Twist";
