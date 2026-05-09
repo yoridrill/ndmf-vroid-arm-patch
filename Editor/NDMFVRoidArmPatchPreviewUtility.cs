@@ -360,8 +360,8 @@ namespace NDMFVRoidArmPatch.Editor
             dst.enableShoulderFix = src.enableShoulderFix;
             dst.shoulderPositionOffset = src.shoulderPositionOffset;
             dst.shoulderEulerOffset = src.shoulderEulerOffset;
-            dst.upperArmTwistAxis = src.upperArmTwistAxis;
-            dst.upperArmTwistWeight = src.upperArmTwistWeight;
+            dst.upperArmRollAxis = src.upperArmRollAxis;
+            dst.upperArmRollWeight = src.upperArmRollWeight;
             dst.enableThumbFix = src.enableThumbFix;
             dst.thumbEulerOffset = src.thumbEulerOffset;
             dst.verboseLog = src.verboseLog;
