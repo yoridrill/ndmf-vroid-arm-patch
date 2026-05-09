@@ -67,7 +67,7 @@ namespace NDMFVRoidArmPatch.Editor
 
             if (settings.enableWristFix)
             {
-                BuildWristFix(avatarRoot, animator, settings, replaceMap);
+                BuildWristFix(ctx.AvatarRootObject, animator, settings, replaceMap);
             }
 
             if (settings.enableThumbFix)
@@ -135,7 +135,7 @@ namespace NDMFVRoidArmPatch.Editor
 
             if (settings.enableWristFix)
             {
-                BuildWristFix(animator, settings, replaceMap);
+                BuildWristFix(avatarRoot, animator, settings, replaceMap);
             }
 
             if (settings.enableThumbFix)
@@ -824,7 +824,7 @@ namespace NDMFVRoidArmPatch.Editor
                 int handIdx = Array.IndexOf(smr.bones, hand);
                 if (lowerIdx < 0 && handIdx < 0) continue;
 
-                var mesh = Object.Instantiate(smr.sharedMesh);
+                var mesh = UnityEngine.Object.Instantiate(smr.sharedMesh);
                 mesh.name = smr.sharedMesh.name + "_Twist";
                 var bones = smr.bones.ToList();
                 var bindposes = mesh.bindposes.ToList();
@@ -968,7 +968,7 @@ namespace NDMFVRoidArmPatch.Editor
             {
                 if (components[i] != null)
                 {
-                    Object.DestroyImmediate(components[i]);
+                    UnityEngine.Object.DestroyImmediate(components[i]);
                 }
             }
         }
