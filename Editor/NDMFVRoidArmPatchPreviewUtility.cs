@@ -362,6 +362,14 @@ namespace NDMFVRoidArmPatch.Editor
             dst.shoulderEulerOffset = src.shoulderEulerOffset;
             dst.upperArmRollAxis = src.upperArmRollAxis;
             dst.upperArmRollWeight = src.upperArmRollWeight;
+            dst.enableWristFix = src.enableWristFix;
+            dst.wristThicknessScale = src.wristThicknessScale;
+            dst.wristWidthScale = src.wristWidthScale;
+            dst.wristRollAxis = src.wristRollAxis;
+            dst.wristRollWeight = src.wristRollWeight;
+            dst.wristTwistBoneType = src.wristTwistBoneType;
+            dst.wristTwistBoneCount = src.wristTwistBoneCount;
+            dst.wristSkinMaterialName = src.wristSkinMaterialName;
             dst.enableThumbFix = src.enableThumbFix;
             dst.thumbEulerOffset = src.thumbEulerOffset;
             dst.verboseLog = src.verboseLog;

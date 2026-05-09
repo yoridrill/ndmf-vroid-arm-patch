@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using nadena.dev.ndmf;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -65,7 +67,7 @@ namespace NDMFVRoidArmPatch.Editor
 
             if (settings.enableWristFix)
             {
-                BuildWristFix(animator, settings, replaceMap);
+                BuildWristFix(avatarRoot, animator, settings, replaceMap);
             }
 
             if (settings.enableThumbFix)
@@ -115,6 +117,8 @@ namespace NDMFVRoidArmPatch.Editor
                 wristWidthScale = component.wristWidthScale,
                 wristTwistAxis = component.wristRollAxis,
                 wristTwistWeight = component.wristRollWeight,
+                wristTwistBoneType = component.wristTwistBoneType,
+                wristTwistBoneCount = component.wristTwistBoneCount,
                 enableThumbFix = component.enableThumbFix,
                 thumbEulerOffset = component.thumbEulerOffset,
                 constraintMode = component.constraintMode,
@@ -243,6 +247,7 @@ namespace NDMFVRoidArmPatch.Editor
         }
 
         private static void BuildWristFix(
+            GameObject avatarRoot,
             Animator animator,
             AggregatedSettings settings,
             Dictionary<Transform, Transform> replaceMap)
@@ -255,9 +260,12 @@ namespace NDMFVRoidArmPatch.Editor
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
                 settings.wristTwistWeight,
+                settings.wristTwistBoneType,
+                settings.wristTwistBoneCount,
                 settings.constraintMode,
                 settings.verboseLog,
-                replaceMap
+                replaceMap,
+                avatarRoot
             );
 
             BuildWristSide(
@@ -268,9 +276,12 @@ namespace NDMFVRoidArmPatch.Editor
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
                 settings.wristTwistWeight,
+                settings.wristTwistBoneType,
+                settings.wristTwistBoneCount,
                 settings.constraintMode,
                 settings.verboseLog,
-                replaceMap
+                replaceMap,
+                avatarRoot
             );
         }
 
@@ -282,9 +293,12 @@ namespace NDMFVRoidArmPatch.Editor
             float widthScale,
             TwistAxis wristTwistAxis,
             float wristTwistWeight,
+            WristTwistBoneType twistBoneType,
+            WristTwistBoneCount twistBoneCount,
             ConstraintMode constraintMode,
             bool verboseLog,
-            Dictionary<Transform, Transform> replaceMap)
+            Dictionary<Transform, Transform> replaceMap,
+            GameObject avatarRoot)
         {
             if (originalLowerArm == null)
             {
@@ -313,6 +327,29 @@ namespace NDMFVRoidArmPatch.Editor
             }
 
             replaceMap[originalLowerArm] = wristDef;
+
+            if (twistBoneType != WristTwistBoneType.None && originalHand != null)
+            {
+                int twistCount = (int)twistBoneCount;
+                var twistAim = CreateSiblingBone(originalLowerArm.name + "_TwistAim", originalLowerArm.parent, originalLowerArm);
+                if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCUpperArmAimConstraint(twistAim, originalHand, sideLabel);
+                else AddUnityUpperArmAimConstraint(twistAim, originalHand, sideLabel);
+
+                var twistBones = new List<Transform>(twistCount);
+                var factors = new List<float>(twistCount);
+                for (int i = 0; i < twistCount; i++)
+                {
+                    float t = twistCount <= 1 ? 1f : (float)i / (twistCount - 1);
+                    var b = CreateChildAlignedBone($"{originalLowerArm.name}_Twist_{i:D2}", twistAim);
+                    b.position = Vector3.Lerp(originalLowerArm.position, originalHand.position, t);
+                    b.rotation = twistAim.rotation;
+                    twistBones.Add(b);
+                    factors.Add(t);
+                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraint(b, originalHand, wristTwistAxis, t);
+                    else AddUnityWristRotateConstraint(b, originalHand, wristTwistAxis, t);
+                }
+                ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, verboseLog);
+            }
 
             if (verboseLog)
             {
@@ -772,6 +809,128 @@ namespace NDMFVRoidArmPatch.Editor
             }
         }
 
+        private static void ReweightForearmVerticesToTwistBones(
+            GameObject avatarRoot,
+            Transform lowerArm,
+            Transform hand,
+            List<Transform> twistBones,
+            bool verboseLog)
+        {
+            var renderers = avatarRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            foreach (var smr in renderers)
+            {
+                if (smr.sharedMesh == null) continue;
+                int lowerIdx = Array.IndexOf(smr.bones, lowerArm);
+                int handIdx = Array.IndexOf(smr.bones, hand);
+                if (lowerIdx < 0 && handIdx < 0) continue;
+
+                var mesh = Object.Instantiate(smr.sharedMesh);
+                mesh.name = smr.sharedMesh.name + "_Twist";
+                var bones = smr.bones.ToList();
+                var bindposes = mesh.bindposes.ToList();
+                var twistBoneIndices = new int[twistBones.Count];
+                for (int i = 0; i < twistBones.Count; i++)
+                {
+                    bones.Add(twistBones[i]);
+                    bindposes.Add(twistBones[i].worldToLocalMatrix * smr.transform.localToWorldMatrix);
+                    twistBoneIndices[i] = bones.Count - 1;
+                }
+
+                var vertices = mesh.vertices;
+                var weights = mesh.boneWeights;
+                Vector3 a = lowerArm.position;
+                Vector3 b = hand.position;
+                Vector3 axis = (b - a).normalized;
+                float dist = Vector3.Distance(a, b);
+                if (dist < 1e-6f) continue;
+                int n = twistBones.Count;
+
+                for (int vi = 0; vi < weights.Length; vi++)
+                {
+                    var bw = weights[vi];
+                    float lowerW = GetWeightForBoneIndex(bw, lowerIdx);
+                    float handW = GetWeightForBoneIndex(bw, handIdx);
+                    float armW = lowerW + handW;
+                    if (armW <= 1e-6f) continue;
+
+                    Vector3 world = smr.transform.TransformPoint(vertices[vi]);
+                    float t = Mathf.Clamp01(Vector3.Dot(world - a, axis) / dist);
+                    float f = t * (n - 1);
+                    int i0 = Mathf.FloorToInt(f);
+                    int i1 = Mathf.Min(i0 + 1, n - 1);
+                    float u = f - i0;
+                    float s = u * u * (3f - 2f * u);
+                    float w0 = i0 == i1 ? 1f : 1f - s;
+                    float w1 = i0 == i1 ? 0f : s;
+
+                    var pairs = new List<(int idx, float w)>(6);
+                    AddOrAccumulate(pairs, twistBoneIndices[i0], armW * w0);
+                    if (w1 > 0f) AddOrAccumulate(pairs, twistBoneIndices[i1], armW * w1);
+                    AddOrAccumulate(pairs, bw.boneIndex0, bw.weight0);
+                    AddOrAccumulate(pairs, bw.boneIndex1, bw.weight1);
+                    AddOrAccumulate(pairs, bw.boneIndex2, bw.weight2);
+                    AddOrAccumulate(pairs, bw.boneIndex3, bw.weight3);
+                    RemoveBone(pairs, lowerIdx);
+                    RemoveBone(pairs, handIdx);
+                    pairs.Sort((x,y)=>y.w.CompareTo(x.w));
+                    if (pairs.Count > 4) pairs.RemoveRange(4, pairs.Count - 4);
+                    Normalize(pairs);
+                    weights[vi] = ToBoneWeight(pairs);
+                }
+
+                mesh.bindposes = bindposes.ToArray();
+                mesh.boneWeights = weights;
+                smr.sharedMesh = mesh;
+                smr.bones = bones.ToArray();
+                if (verboseLog) Debug.Log($"[NDMF VRoid Arm Patch] Twist reweight: {GetPath(smr.transform)}");
+            }
+        }
+
+        private static float GetWeightForBoneIndex(BoneWeight bw, int boneIndex)
+        {
+            if (boneIndex < 0) return 0f;
+            float w = 0f;
+            if (bw.boneIndex0 == boneIndex) w += bw.weight0;
+            if (bw.boneIndex1 == boneIndex) w += bw.weight1;
+            if (bw.boneIndex2 == boneIndex) w += bw.weight2;
+            if (bw.boneIndex3 == boneIndex) w += bw.weight3;
+            return w;
+        }
+
+        private static void AddOrAccumulate(List<(int idx, float w)> pairs, int idx, float w)
+        {
+            if (idx < 0 || w <= 0f) return;
+            for (int i = 0; i < pairs.Count; i++)
+            {
+                if (pairs[i].idx == idx) { pairs[i] = (idx, pairs[i].w + w); return; }
+            }
+            pairs.Add((idx, w));
+        }
+
+        private static void RemoveBone(List<(int idx, float w)> pairs, int idx)
+        {
+            if (idx < 0) return;
+            pairs.RemoveAll(p => p.idx == idx);
+        }
+
+        private static void Normalize(List<(int idx, float w)> pairs)
+        {
+            float sum = 0f;
+            for (int i = 0; i < pairs.Count; i++) sum += pairs[i].w;
+            if (sum <= 1e-6f) return;
+            for (int i = 0; i < pairs.Count; i++) pairs[i] = (pairs[i].idx, pairs[i].w / sum);
+        }
+
+        private static BoneWeight ToBoneWeight(List<(int idx, float w)> pairs)
+        {
+            var bw = new BoneWeight();
+            if (pairs.Count > 0) { bw.boneIndex0 = pairs[0].idx; bw.weight0 = pairs[0].w; }
+            if (pairs.Count > 1) { bw.boneIndex1 = pairs[1].idx; bw.weight1 = pairs[1].w; }
+            if (pairs.Count > 2) { bw.boneIndex2 = pairs[2].idx; bw.weight2 = pairs[2].w; }
+            if (pairs.Count > 3) { bw.boneIndex3 = pairs[3].idx; bw.weight3 = pairs[3].w; }
+            return bw;
+        }
+
         private static AggregatedSettings Aggregate(NDMFVRoidArmPatchComponent[] components)
         {
             if (components.Length > 1)
@@ -793,6 +952,8 @@ namespace NDMFVRoidArmPatch.Editor
                 wristWidthScale = c.wristWidthScale,
                 wristTwistAxis = c.wristRollAxis,
                 wristTwistWeight = c.wristRollWeight,
+                wristTwistBoneType = c.wristTwistBoneType,
+                wristTwistBoneCount = c.wristTwistBoneCount,
                 enableThumbFix = c.enableThumbFix,
                 thumbEulerOffset = c.thumbEulerOffset,
                 constraintMode = c.constraintMode,
@@ -835,6 +996,8 @@ namespace NDMFVRoidArmPatch.Editor
             public float wristWidthScale;
             public TwistAxis wristTwistAxis;
             public float wristTwistWeight;
+            public WristTwistBoneType wristTwistBoneType;
+            public WristTwistBoneCount wristTwistBoneCount;
             public bool enableThumbFix;
             public Vector3 thumbEulerOffset;
             public ConstraintMode constraintMode;
