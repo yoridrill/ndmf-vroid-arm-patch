@@ -66,7 +66,7 @@ namespace NDMFVRoidArmPatch.Editor
         private Language language;
         private bool advancedFoldout;
 
-        private const float MainLabelWidth = 92f;
+        private const float MainLabelWidth = 84f;
         private const float SubLabelWidth = 110f;
         private const float Gap = 8f;
         private const float ToggleWidth = 16f;
@@ -358,7 +358,7 @@ namespace NDMFVRoidArmPatch.Editor
             EditorGUI.LabelField(subLabelRect, new GUIContent(T("Twist Bone Type", "Twist Bone Type"), GetTwistBoneTypeTooltip()));
 
             string[] labels = { "None", "AllTwist", "SkinOnly" };
-            wristTwistBoneTypeProp.enumValueIndex = GUI.Toolbar(valueRect, wristTwistBoneTypeProp.enumValueIndex, labels);
+            wristTwistBoneTypeProp.enumValueIndex = EditorGUI.Popup(valueRect, wristTwistBoneTypeProp.enumValueIndex, labels);
         }
 
         private void DrawTwistBoneCountRow()
