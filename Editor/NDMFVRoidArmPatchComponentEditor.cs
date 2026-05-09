@@ -267,18 +267,6 @@ namespace NDMFVRoidArmPatch.Editor
                 );
                 EditorGUI.PropertyField(valueRect, wristRollAxisProp, GUIContent.none);
 
-                DrawShoulderSubRow(
-                    T("Twist Bone Type", "Twist Bone Type"),
-                    wristTwistBoneTypeProp,
-                    GetTwistBoneTypeTooltip()
-                );
-
-                DrawShoulderSubRow(
-                    T("Twist Bone Count", "Twist Bone Count"),
-                    wristTwistBoneCountProp,
-                    T("追加する前腕ツイストボーン数。", "Number of forearm twist bones to use.")
-                );
-
                 using (new EditorGUI.DisabledScope(IsWristTwistBoneModeActive()))
                 {
                     DrawShoulderSubRow(
@@ -287,8 +275,6 @@ namespace NDMFVRoidArmPatch.Editor
                         T("手首の roll を前腕へ伝える強さ。", "How strongly hand roll is transferred to the forearm.")
                     );
                 }
-
-                DrawWristSkinMaterialRow(component);
 
                 DrawShoulderSubRow(
                     T($"Thickness ({wristScaleAxes.thicknessAxis})", $"Thickness ({wristScaleAxes.thicknessAxis})"),
@@ -307,6 +293,10 @@ namespace NDMFVRoidArmPatch.Editor
                         $"Forearm width adjustment. Currently applied on local {wristScaleAxes.widthAxis}."
                     )
                 );
+
+                DrawTwistBoneTypeRow();
+                DrawTwistBoneCountRow();
+                DrawWristSkinMaterialRow(component);
             }
         }
 
@@ -352,8 +342,62 @@ namespace NDMFVRoidArmPatch.Editor
                 }
             }
 
-            int next = EditorGUILayout.Popup(new GUIContent(T("Skin Material", "Skin Material")), selected, candidates.ToArray());
+            int next = DrawSubRowPopup(T("Skin Material", "Skin Material"), candidates.ToArray(), selected, T("SkinOnlyモードで使う実マテリアル名。", "Material name used in SkinOnly mode."));
             wristSkinMaterialNameProp.stringValue = candidates[next];
+        }
+
+        private void DrawTwistBoneTypeRow()
+        {
+            Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            Rect spacerRect = new Rect(rect.x, rect.y, ToggleWidth, rect.height);
+            Rect mainLabelRect = new Rect(spacerRect.xMax + 2f, rect.y, MainLabelWidth, rect.height);
+            Rect subLabelRect = new Rect(mainLabelRect.xMax + Gap, rect.y, SubLabelWidth, rect.height);
+            Rect valueRect = new Rect(subLabelRect.xMax + 4f, rect.y, rect.xMax - (subLabelRect.xMax + 4f), rect.height);
+
+            EditorGUI.LabelField(mainLabelRect, GUIContent.none);
+            EditorGUI.LabelField(subLabelRect, new GUIContent(T("Twist Bone Type", "Twist Bone Type"), GetTwistBoneTypeTooltip()));
+
+            string[] labels = { "None", "AllTwist", "SkinOnly" };
+            wristTwistBoneTypeProp.enumValueIndex = GUI.Toolbar(valueRect, wristTwistBoneTypeProp.enumValueIndex, labels);
+        }
+
+        private void DrawTwistBoneCountRow()
+        {
+            string[] countLabels = { "4", "6", "8", "12" };
+            int[] enumIndices =
+            {
+                (int)WristTwistBoneCount.Count4,
+                (int)WristTwistBoneCount.Count6,
+                (int)WristTwistBoneCount.Count8,
+                (int)WristTwistBoneCount.Count12
+            };
+
+            int selectedIdx = Array.IndexOf(enumIndices, wristTwistBoneCountProp.intValue);
+            if (selectedIdx < 0) selectedIdx = 2;
+
+            Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            Rect spacerRect = new Rect(rect.x, rect.y, ToggleWidth, rect.height);
+            Rect mainLabelRect = new Rect(spacerRect.xMax + 2f, rect.y, MainLabelWidth, rect.height);
+            Rect subLabelRect = new Rect(mainLabelRect.xMax + Gap, rect.y, SubLabelWidth, rect.height);
+            Rect valueRect = new Rect(subLabelRect.xMax + 4f, rect.y, rect.xMax - (subLabelRect.xMax + 4f), rect.height);
+
+            EditorGUI.LabelField(mainLabelRect, GUIContent.none);
+            EditorGUI.LabelField(subLabelRect, new GUIContent(T("Twist Bone Count", "Twist Bone Count"), T("追加する前腕ツイストボーン数。", "Number of forearm twist bones to use.")));
+            int next = GUI.Toolbar(valueRect, selectedIdx, countLabels);
+            wristTwistBoneCountProp.intValue = enumIndices[next];
+        }
+
+        private int DrawSubRowPopup(string label, string[] options, int selectedIndex, string tooltip)
+        {
+            Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            Rect spacerRect = new Rect(rect.x, rect.y, ToggleWidth, rect.height);
+            Rect mainLabelRect = new Rect(spacerRect.xMax + 2f, rect.y, MainLabelWidth, rect.height);
+            Rect subLabelRect = new Rect(mainLabelRect.xMax + Gap, rect.y, SubLabelWidth, rect.height);
+            Rect valueRect = new Rect(subLabelRect.xMax + 4f, rect.y, rect.xMax - (subLabelRect.xMax + 4f), rect.height);
+
+            EditorGUI.LabelField(mainLabelRect, GUIContent.none);
+            EditorGUI.LabelField(subLabelRect, new GUIContent(label, tooltip));
+            return EditorGUI.Popup(valueRect, selectedIndex, options);
         }
 
         private static List<string> CollectMaterialCandidates(NDMFVRoidArmPatchComponent component)
