@@ -306,31 +306,33 @@ namespace NDMFVRoidArmPatch.Editor
                 return;
             }
 
-            var wristDef = CreateChildAlignedBone(
-                originalLowerArm.name + "_Wrist_Def",
-                originalLowerArm
-            );
-
-            wristDef.localScale = BuildWristScaleVector(wristTwistAxis, thicknessScale, widthScale);
-
-            if (originalHand == null)
+            if (twistBoneType == WristTwistBoneType.None)
             {
-                Debug.LogWarning($"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist rotate part skipped. Hand not found.");
+                var wristDef = CreateChildAlignedBone(
+                    originalLowerArm.name + "_Wrist_Def",
+                    originalLowerArm
+                );
+
+                wristDef.localScale = BuildWristScaleVector(wristTwistAxis, thicknessScale, widthScale);
+
+                if (originalHand == null)
+                {
+                    Debug.LogWarning($"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist rotate part skipped. Hand not found.");
+                }
+                else if (constraintMode == ConstraintMode.VRChatConstraints)
+                {
+                    AddVRCWristRotateConstraint(wristDef, originalHand, wristTwistAxis, wristTwistWeight);
+                }
+                else
+                {
+                    AddUnityWristRotateConstraint(wristDef, originalHand, wristTwistAxis, wristTwistWeight);
+                }
+
+                replaceMap[originalLowerArm] = wristDef;
             }
-            else if (constraintMode == ConstraintMode.VRChatConstraints)
+            else if (originalHand != null)
             {
-                AddVRCWristRotateConstraint(wristDef, originalHand, wristTwistAxis, wristTwistWeight);
-            }
-            else
-            {
-                AddUnityWristRotateConstraint(wristDef, originalHand, wristTwistAxis, wristTwistWeight);
-            }
-
-            replaceMap[originalLowerArm] = wristDef;
-
-            if (twistBoneType != WristTwistBoneType.None && originalHand != null)
-            {
-                int twistCount = ResolveTwistBoneCount(twistBoneCount);
+                int twistCount = (int)twistBoneCount;
                 var twistAim = CreateSiblingBone(originalLowerArm.name + "_TwistAim", originalLowerArm.parent, originalLowerArm);
                 if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCUpperArmAimConstraint(twistAim, originalHand, sideLabel);
                 else AddUnityUpperArmAimConstraint(twistAim, originalHand, sideLabel);
@@ -348,6 +350,7 @@ namespace NDMFVRoidArmPatch.Editor
                     if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraint(b, originalHand, wristTwistAxis, t);
                     else AddUnityWristRotateConstraint(b, originalHand, wristTwistAxis, t);
                 }
+                replaceMap[originalLowerArm] = twistBones[0];
                 ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, verboseLog);
 
                 if (verboseLog)
@@ -888,18 +891,6 @@ namespace NDMFVRoidArmPatch.Editor
                 smr.sharedMesh = mesh;
                 smr.bones = bones.ToArray();
                 if (verboseLog) Debug.Log($"[NDMF VRoid Arm Patch] Twist reweight: {GetPath(smr.transform)}");
-            }
-        }
-
-        private static int ResolveTwistBoneCount(WristTwistBoneCount count)
-        {
-            switch (count)
-            {
-                case WristTwistBoneCount.Count4: return 4;
-                case WristTwistBoneCount.Count6: return 6;
-                case WristTwistBoneCount.Count8: return 8;
-                case WristTwistBoneCount.Count12: return 12;
-                default: return 8;
             }
         }
 
