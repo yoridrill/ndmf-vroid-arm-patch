@@ -330,7 +330,7 @@ namespace NDMFVRoidArmPatch.Editor
 
             if (twistBoneType != WristTwistBoneType.None && originalHand != null)
             {
-                int twistCount = (int)twistBoneCount;
+                int twistCount = ResolveTwistBoneCount(twistBoneCount);
                 var twistAim = CreateSiblingBone(originalLowerArm.name + "_TwistAim", originalLowerArm.parent, originalLowerArm);
                 if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCUpperArmAimConstraint(twistAim, originalHand, sideLabel);
                 else AddUnityUpperArmAimConstraint(twistAim, originalHand, sideLabel);
@@ -349,6 +349,11 @@ namespace NDMFVRoidArmPatch.Editor
                     else AddUnityWristRotateConstraint(b, originalHand, wristTwistAxis, t);
                 }
                 ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, verboseLog);
+
+                if (verboseLog)
+                {
+                    Debug.Log($"[NDMF VRoid Arm Patch] [{sideLabel}] Twist bones generated. count={twistCount}, type={twistBoneType}");
+                }
             }
 
             if (verboseLog)
@@ -883,6 +888,18 @@ namespace NDMFVRoidArmPatch.Editor
                 smr.sharedMesh = mesh;
                 smr.bones = bones.ToArray();
                 if (verboseLog) Debug.Log($"[NDMF VRoid Arm Patch] Twist reweight: {GetPath(smr.transform)}");
+            }
+        }
+
+        private static int ResolveTwistBoneCount(WristTwistBoneCount count)
+        {
+            switch (count)
+            {
+                case WristTwistBoneCount.Count4: return 4;
+                case WristTwistBoneCount.Count6: return 6;
+                case WristTwistBoneCount.Count8: return 8;
+                case WristTwistBoneCount.Count12: return 12;
+                default: return 8;
             }
         }
 
