@@ -229,7 +229,7 @@ namespace NDMFVRoidArmPatch.Editor
                         T("ねじれ補正で使う軸。初期値は X。", "Axis used for twist correction. Default is X.")
                     )
                 );
-                EditorGUI.PropertyField(valueRect, upperArmRollAxisProp, GUIContent.none);
+                DrawAxisToolbar(valueRect, upperArmRollAxisProp);
             }
         }
 
@@ -265,7 +265,7 @@ namespace NDMFVRoidArmPatch.Editor
                         T("手首回転の twist 軸です。", "Twist axis for wrist rotation.")
                     )
                 );
-                EditorGUI.PropertyField(valueRect, wristRollAxisProp, GUIContent.none);
+                DrawAxisToolbar(valueRect, wristRollAxisProp);
 
                 using (new EditorGUI.DisabledScope(IsWristTwistBoneModeActive()))
                 {
@@ -398,6 +398,12 @@ namespace NDMFVRoidArmPatch.Editor
             EditorGUI.LabelField(mainLabelRect, GUIContent.none);
             EditorGUI.LabelField(subLabelRect, new GUIContent(label, tooltip));
             return EditorGUI.Popup(valueRect, selectedIndex, options);
+        }
+
+        private static void DrawAxisToolbar(Rect rect, SerializedProperty axisProperty)
+        {
+            string[] axisLabels = { "X", "Y", "Z" };
+            axisProperty.enumValueIndex = GUI.Toolbar(rect, axisProperty.enumValueIndex, axisLabels);
         }
 
         private static List<string> CollectMaterialCandidates(NDMFVRoidArmPatchComponent component)
