@@ -48,7 +48,7 @@ namespace NDMFVRoidArmPatch.Editor
             var components = ctx.AvatarRootObject.GetComponentsInChildren<NDMFVRoidArmPatchComponent>(true);
             if (components == null || components.Length == 0) return;
 
-            var settings = Aggregate(components);
+            var settings = Aggregate(components, ctx.AvatarRootObject);
             if (settings.buildOrder != currentPassOrder) return;
 
             var animator = ctx.AvatarRootObject.GetComponentInChildren<Animator>(true);
@@ -62,6 +62,7 @@ namespace NDMFVRoidArmPatch.Editor
             if (settings.verboseLog)
             {
                 Debug.Log("[NDMF VRoid Arm Patch] Build pass started.");
+                Debug.Log($"[NDMF VRoid Arm Patch] Aggregated settings: wristType={settings.wristTwistBoneType}, wristCount={settings.wristTwistBoneCount}, wristFix={settings.enableWristFix}");
             }
 
             if (settings.enableShoulderFix)
@@ -963,14 +964,13 @@ namespace NDMFVRoidArmPatch.Editor
             return bw;
         }
 
-        private static AggregatedSettings Aggregate(NDMFVRoidArmPatchComponent[] components)
+        private static AggregatedSettings Aggregate(NDMFVRoidArmPatchComponent[] components, GameObject avatarRoot)
         {
             if (components.Length > 1)
             {
                 Debug.LogWarning("[NDMF VRoid Arm Patch] Multiple components found. Last one will be used.");
             }
-
-            var c = components[components.Length - 1];
+            var c = SelectPreferredComponent(components, avatarRoot);
 
             return new AggregatedSettings
             {
@@ -992,6 +992,40 @@ namespace NDMFVRoidArmPatch.Editor
                 buildOrder = c.buildOrder,
                 verboseLog = c.verboseLog
             };
+        }
+
+        private static NDMFVRoidArmPatchComponent SelectPreferredComponent(NDMFVRoidArmPatchComponent[] components, GameObject avatarRoot)
+        {
+            NDMFVRoidArmPatchComponent best = components[0];
+            int bestScore = int.MinValue;
+            Transform root = avatarRoot != null ? avatarRoot.transform : null;
+
+            for (int i = 0; i < components.Length; i++)
+            {
+                var c = components[i];
+                if (c == null) continue;
+                int depth = GetDepthFromRoot(c.transform, root);
+                int score = depth;
+                if (c.wristTwistBoneType != WristTwistBoneType.None) score += 1000;
+                if (score > bestScore)
+                {
+                    best = c;
+                    bestScore = score;
+                }
+            }
+
+            return best;
+        }
+
+        private static int GetDepthFromRoot(Transform t, Transform root)
+        {
+            int depth = 0;
+            while (t != null && t != root)
+            {
+                depth++;
+                t = t.parent;
+            }
+            return depth;
         }
 
         private static void RemoveComponents(NDMFVRoidArmPatchComponent[] components)
