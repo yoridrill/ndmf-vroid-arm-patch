@@ -376,14 +376,11 @@ namespace NDMFVRoidArmPatch.Editor
             int current = wristPitchAxisProp.enumValueIndex;
             if (current == roll) current = DetectPitchAxis(component, roll);
 
-            using (new EditorGUI.DisabledScope(false))
+            int next = GUI.Toolbar(valueRect, current, labels);
+            wristPitchAxisProp.enumValueIndex = next;
+            if (wristPitchAxisProp.enumValueIndex == roll)
             {
-                // custom popup excluding roll axis
-                int[] axisMap = roll == 0 ? new[] { 1, 2 } : roll == 1 ? new[] { 0, 2 } : new[] { 0, 1 };
-                string[] opts = { labels[axisMap[0]], labels[axisMap[1]] };
-                int selected = current == axisMap[1] ? 1 : 0;
-                int next = EditorGUI.Popup(valueRect, selected, opts);
-                wristPitchAxisProp.enumValueIndex = axisMap[next];
+                wristPitchAxisProp.enumValueIndex = DetectPitchAxis(component, roll);
             }
         }
 
