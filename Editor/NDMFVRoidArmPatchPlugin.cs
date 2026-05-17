@@ -317,11 +317,11 @@ namespace NDMFVRoidArmPatch.Editor
                 wristTwistExtractor = CreateChildAlignedBone(originalHand.name + "_WristTwistExtractor", originalHand);
                 if (constraintMode == ConstraintMode.VRChatConstraints)
                 {
-                    AddVRCWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, sideLabel);
+                    AddVRCWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel);
                 }
                 else
                 {
-                    AddUnityWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, sideLabel);
+                    AddUnityWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel);
                 }
             }
 
@@ -619,7 +619,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.ApplyConfigurationChanges();
         }
 
-        private static void AddVRCWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, string sideLabel)
+        private static void AddVRCWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel)
         {
             var constraint = target.gameObject.AddComponent<VRCAimConstraint>();
             var localAim = lowerArm.localPosition;
@@ -637,7 +637,8 @@ namespace NDMFVRoidArmPatch.Editor
             // Use the inverted aim axis so copied rotation aligns with twist-bone forward convention.
             constraint.AimAxis = (-localAim).normalized;
             constraint.UpAxis = Vector3.up;
-            constraint.WorldUp = VRCConstraintBase.WorldUpType.None;
+            constraint.WorldUp = VRCConstraintBase.WorldUpType.ObjectUpRotation;
+            constraint.WorldUpObject = hand;
             constraint.Sources.Clear();
             constraint.Sources.Add(new VRCConstraintSource(lowerArm, 1f));
             constraint.ApplyConfigurationChanges();
@@ -780,7 +781,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.locked = true;
         }
 
-        private static void AddUnityWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, string sideLabel)
+        private static void AddUnityWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel)
         {
             var constraint = target.gameObject.AddComponent<AimConstraint>();
             constraint.constraintActive = false;
@@ -793,7 +794,8 @@ namespace NDMFVRoidArmPatch.Editor
             // WristTwistExtractor is parented under Hand and aims to LowerArm (opposite direction of TwistAim).
             // Use the inverted aim vector so copied rotation aligns with twist-bone forward convention.
             constraint.aimVector = (-localAim).normalized;
-            constraint.worldUpType = AimConstraint.WorldUpType.None;
+            constraint.worldUpType = AimConstraint.WorldUpType.ObjectUp;
+            constraint.worldUpObject = hand;
             constraint.constraintActive = true;
             constraint.locked = true;
         }
