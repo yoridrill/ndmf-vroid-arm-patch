@@ -545,7 +545,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.IsActive = true;
             constraint.GlobalWeight = 1f;
             constraint.Locked = true;
-            constraint.SolveInLocalSpace = true;
+            constraint.SolveInLocalSpace = false;
             constraint.FreezeToWorld = false;
             constraint.RebakeOffsetsWhenUnfrozen = false;
 
@@ -575,7 +575,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.IsActive = true;
             constraint.GlobalWeight = twistWeight;
             constraint.Locked = true;
-            constraint.SolveInLocalSpace = true;
+            constraint.SolveInLocalSpace = false;
             constraint.FreezeToWorld = false;
             constraint.RebakeOffsetsWhenUnfrozen = false;
 
@@ -601,7 +601,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.IsActive = true;
             constraint.GlobalWeight = twistWeight;
             constraint.Locked = true;
-            constraint.SolveInLocalSpace = true;
+            constraint.SolveInLocalSpace = false;
             constraint.FreezeToWorld = false;
             constraint.RebakeOffsetsWhenUnfrozen = false;
 
