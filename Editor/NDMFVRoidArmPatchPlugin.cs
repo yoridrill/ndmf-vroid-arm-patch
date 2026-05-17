@@ -637,9 +637,8 @@ namespace NDMFVRoidArmPatch.Editor
             // Use the inverted aim axis so copied rotation aligns with twist-bone forward convention.
             constraint.AimAxis = (-localAim).normalized;
             constraint.UpAxis = Vector3.up;
-            // Current VRC SDK in this project does not expose ObjectUpRotation/WorldUpObject on VRCAimConstraint.
-            // Keep compile-safe behavior here; Unity AimConstraint path uses ObjectUp with hand.
-            constraint.WorldUp = VRCConstraintBase.WorldUpType.None;
+            constraint.WorldUp = VRCConstraintBase.WorldUpType.ObjectRotationUp;
+            constraint.WorldUpTransform = hand;
             constraint.Sources.Clear();
             constraint.Sources.Add(new VRCConstraintSource(lowerArm, 1f));
             constraint.ApplyConfigurationChanges();
