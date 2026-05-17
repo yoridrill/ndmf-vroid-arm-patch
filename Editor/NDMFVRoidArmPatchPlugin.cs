@@ -352,8 +352,8 @@ namespace NDMFVRoidArmPatch.Editor
                     b.rotation = twistAim.rotation;
                     twistBones.Add(b);
                     factors.Add(t);
-                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraint(b, originalHand, wristTwistAxis, t);
-                    else AddUnityWristRotateConstraint(b, originalHand, wristTwistAxis, t);
+                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristTwistBoneRotateConstraint(b, originalHand, wristTwistAxis, t);
+                    else AddUnityWristTwistBoneRotateConstraint(b, originalHand, wristTwistAxis, t);
                 }
                 replaceMap[originalLowerArm] = twistBones[0];
                 ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, verboseLog);
@@ -616,6 +616,31 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.ApplyConfigurationChanges();
         }
 
+        private static void AddVRCWristTwistBoneRotateConstraint(
+            Transform target,
+            Transform handSource,
+            TwistAxis twistAxis,
+            float twistWeight)
+        {
+            var constraint = target.gameObject.AddComponent<VRCRotationConstraint>();
+
+            constraint.IsActive = true;
+            constraint.GlobalWeight = twistWeight;
+            constraint.Locked = true;
+            constraint.SolveInLocalSpace = true;
+            constraint.FreezeToWorld = false;
+            constraint.RebakeOffsetsWhenUnfrozen = false;
+
+            constraint.RotationAtRest = target.localEulerAngles;
+            constraint.RotationOffset = Vector3.zero;
+
+            SetVRCRotationAxis(constraint, twistAxis);
+
+            constraint.Sources.Clear();
+            constraint.Sources.Add(new VRCConstraintSource(handSource, 1f));
+            constraint.ApplyConfigurationChanges();
+        }
+
         private static void AddVRCRotationConstraintAllAxes(Transform target, Transform source, Vector3 eulerOffset)
         {
             var constraint = target.gameObject.AddComponent<VRCRotationConstraint>();
@@ -705,6 +730,30 @@ namespace NDMFVRoidArmPatch.Editor
         }
 
         private static void AddUnityWristRotateConstraint(
+            Transform target,
+            Transform handSource,
+            TwistAxis twistAxis,
+            float twistWeight)
+        {
+            var constraint = target.gameObject.AddComponent<RotationConstraint>();
+            constraint.constraintActive = false;
+            constraint.locked = false;
+            constraint.weight = twistWeight;
+            constraint.rotationAxis = GetUnityRotationAxis(twistAxis);
+
+            var src = new ConstraintSource
+            {
+                sourceTransform = handSource,
+                weight = 1f
+            };
+
+            constraint.AddSource(src);
+            constraint.rotationOffset = Vector3.zero;
+            constraint.constraintActive = true;
+            constraint.locked = true;
+        }
+
+        private static void AddUnityWristTwistBoneRotateConstraint(
             Transform target,
             Transform handSource,
             TwistAxis twistAxis,
