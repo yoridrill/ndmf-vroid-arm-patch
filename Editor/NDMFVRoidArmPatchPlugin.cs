@@ -637,9 +637,8 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.AffectsRotationX = true;
             constraint.AffectsRotationY = true;
             constraint.AffectsRotationZ = true;
-            // WristTwistExtractor is parented under Hand and aims to LowerArm (opposite direction of TwistAim).
-            // Use the inverted aim axis so copied rotation aligns with twist-bone forward convention.
-            constraint.AimAxis = ToAxisVector(rollAxis);
+            // Mirrored right-hand rigs often require flipped aim sign for extractor stability.
+            constraint.AimAxis = sideLabel == "R" ? -ToAxisVector(rollAxis) : ToAxisVector(rollAxis);
             constraint.UpAxis = ToAxisVector(pitchAxis);
             constraint.WorldUp = VRCConstraintBase.WorldUpType.ObjectRotationUp;
             constraint.WorldUpTransform = hand;
@@ -798,9 +797,8 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.AddSource(new ConstraintSource { sourceTransform = lowerArm, weight = 1f });
             var localAim = lowerArm.localPosition;
             if (localAim.sqrMagnitude < 1e-8f) localAim = sideLabel == "L" ? Vector3.right : Vector3.left;
-            // WristTwistExtractor is parented under Hand and aims to LowerArm (opposite direction of TwistAim).
-            // Use the inverted aim vector so copied rotation aligns with twist-bone forward convention.
-            constraint.aimVector = ToAxisVector(rollAxis);
+            // Mirrored right-hand rigs often require flipped aim sign for extractor stability.
+            constraint.aimVector = sideLabel == "R" ? -ToAxisVector(rollAxis) : ToAxisVector(rollAxis);
             constraint.upVector = ToAxisVector(pitchAxis);
             constraint.worldUpType = AimConstraint.WorldUpType.ObjectRotationUp;
             constraint.worldUpObject = hand;
