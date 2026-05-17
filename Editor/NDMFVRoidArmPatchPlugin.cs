@@ -369,16 +369,19 @@ namespace NDMFVRoidArmPatch.Editor
 
                 var twistBones = new List<Transform>(twistCount);
                 var factors = new List<float>(twistCount);
+                Vector3 handLocalFromAim = twistAim.InverseTransformPoint(originalHand.position);
+                Vector3 localDir = handLocalFromAim.sqrMagnitude > 1e-8f ? handLocalFromAim.normalized : Vector3.right;
+                float localDist = handLocalFromAim.magnitude;
                 for (int i = 0; i < twistCount; i++)
                 {
                     float t = twistCount <= 1 ? 1f : (float)i / (twistCount - 1);
                     var b = CreateChildAlignedBone($"{originalLowerArm.name}_Twist_{i:D2}", twistAim);
-                    b.position = Vector3.Lerp(originalLowerArm.position, originalHand.position, t);
-                    b.rotation = twistAim.rotation;
+                    b.localPosition = localDir * (localDist * t);
+                    b.localRotation = Quaternion.identity;
                     twistBones.Add(b);
                     factors.Add(t);
-                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristTwistDistributedConstraint(b, originalLowerArm, originalHand, wristTwistAxis, t);
-                    else AddUnityWristTwistDistributedConstraint(b, originalLowerArm, originalHand, wristTwistAxis, t);
+                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraint(b, originalHand, wristTwistAxis, t);
+                    else AddUnityWristRotateConstraint(b, originalHand, wristTwistAxis, t);
 
                     if (verboseLog)
                     {
@@ -583,7 +586,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.IsActive = true;
             constraint.GlobalWeight = 1f;
             constraint.Locked = true;
-            constraint.SolveInLocalSpace = false;
+            constraint.SolveInLocalSpace = true;
             constraint.FreezeToWorld = false;
             constraint.RebakeOffsetsWhenUnfrozen = false;
 
@@ -654,30 +657,6 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.ApplyConfigurationChanges();
         }
 
-        private static void AddVRCWristTwistDistributedConstraint(
-            Transform target,
-            Transform lowerArmSource,
-            Transform handSource,
-            TwistAxis twistAxis,
-            float handWeight)
-        {
-            var constraint = target.gameObject.AddComponent<VRCRotationConstraint>();
-            constraint.IsActive = true;
-            constraint.GlobalWeight = 1f;
-            constraint.Locked = true;
-            constraint.SolveInLocalSpace = false;
-            constraint.FreezeToWorld = false;
-            constraint.RebakeOffsetsWhenUnfrozen = false;
-            constraint.RotationAtRest = target.localEulerAngles;
-            constraint.RotationOffset = Vector3.zero;
-            SetVRCRotationAxis(constraint, twistAxis);
-            constraint.Sources.Clear();
-            float lowerW = Mathf.Clamp01(1f - handWeight);
-            float handW = Mathf.Clamp01(handWeight);
-            if (lowerW > 1e-6f) constraint.Sources.Add(new VRCConstraintSource(lowerArmSource, lowerW));
-            if (handW > 1e-6f) constraint.Sources.Add(new VRCConstraintSource(handSource, handW));
-            constraint.ApplyConfigurationChanges();
-        }
 
 
         private static void AddVRCRotationConstraintAllAxes(Transform target, Transform source, Vector3 eulerOffset)
@@ -792,34 +771,6 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.locked = true;
         }
 
-        private static void AddUnityWristTwistDistributedConstraint(
-            Transform target,
-            Transform lowerArmSource,
-            Transform handSource,
-            TwistAxis twistAxis,
-            float handWeight)
-        {
-            var constraint = target.gameObject.AddComponent<RotationConstraint>();
-            constraint.constraintActive = false;
-            constraint.locked = false;
-            constraint.weight = 1f;
-            constraint.rotationAxis = GetUnityRotationAxis(twistAxis);
-
-            float lowerW = Mathf.Clamp01(1f - handWeight);
-            float handW = Mathf.Clamp01(handWeight);
-            if (lowerW > 1e-6f)
-            {
-                constraint.AddSource(new ConstraintSource { sourceTransform = lowerArmSource, weight = lowerW });
-            }
-            if (handW > 1e-6f)
-            {
-                constraint.AddSource(new ConstraintSource { sourceTransform = handSource, weight = handW });
-            }
-
-            constraint.rotationOffset = Vector3.zero;
-            constraint.constraintActive = true;
-            constraint.locked = true;
-        }
 
 
         private static void AddUnityRotationConstraintAllAxes(Transform target, Transform source, Vector3 eulerOffset)
