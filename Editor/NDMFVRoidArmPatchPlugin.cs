@@ -311,6 +311,20 @@ namespace NDMFVRoidArmPatch.Editor
                 return;
             }
 
+            Transform wristTwistExtractor = null;
+            if (originalHand != null)
+            {
+                wristTwistExtractor = CreateChildAlignedBone(originalHand.name + "_WristTwistExtractor", originalHand);
+                if (constraintMode == ConstraintMode.VRChatConstraints)
+                {
+                    AddVRCWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, sideLabel);
+                }
+                else
+                {
+                    AddUnityWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, sideLabel);
+                }
+            }
+
             if (twistBoneType == WristTwistBoneType.None)
             {
                 var wristDef = CreateChildAlignedBone(
@@ -326,11 +340,11 @@ namespace NDMFVRoidArmPatch.Editor
                 }
                 else if (constraintMode == ConstraintMode.VRChatConstraints)
                 {
-                    AddVRCWristRotateConstraint(wristDef, originalHand, wristTwistAxis, wristTwistWeight);
+                    AddVRCWristRotateConstraint(wristDef, wristTwistExtractor, wristTwistAxis, wristTwistWeight);
                 }
                 else
                 {
-                    AddUnityWristRotateConstraint(wristDef, originalHand, wristTwistAxis, wristTwistWeight);
+                    AddUnityWristRotateConstraint(wristDef, wristTwistExtractor, wristTwistAxis, wristTwistWeight);
                 }
 
                 replaceMap[originalLowerArm] = wristDef;
@@ -380,8 +394,8 @@ namespace NDMFVRoidArmPatch.Editor
                     b.localRotation = Quaternion.identity;
                     twistBones.Add(b);
                     factors.Add(t);
-                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraint(b, originalHand, wristTwistAxis, t);
-                    else AddUnityWristRotateConstraint(b, originalHand, wristTwistAxis, t);
+                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraintAllAxes(b, wristTwistExtractor, t);
+                    else AddUnityWristRotateConstraintAllAxes(b, wristTwistExtractor, t);
 
                     if (verboseLog)
                     {
@@ -586,7 +600,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.IsActive = true;
             constraint.GlobalWeight = 1f;
             constraint.Locked = true;
-            constraint.SolveInLocalSpace = true;
+            constraint.SolveInLocalSpace = false;
             constraint.FreezeToWorld = false;
             constraint.RebakeOffsetsWhenUnfrozen = false;
 
@@ -602,6 +616,28 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.Sources.Clear();
             constraint.Sources.Add(new VRCConstraintSource(lowerArm, 1f));
 
+            constraint.ApplyConfigurationChanges();
+        }
+
+        private static void AddVRCWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, string sideLabel)
+        {
+            var constraint = target.gameObject.AddComponent<VRCAimConstraint>();
+            var localAim = lowerArm.localPosition;
+            if (localAim.sqrMagnitude < 1e-8f) localAim = sideLabel == "L" ? Vector3.right : Vector3.left;
+            constraint.IsActive = true;
+            constraint.GlobalWeight = 1f;
+            constraint.Locked = true;
+            constraint.SolveInLocalSpace = false;
+            constraint.FreezeToWorld = false;
+            constraint.RebakeOffsetsWhenUnfrozen = false;
+            constraint.AffectsRotationX = true;
+            constraint.AffectsRotationY = true;
+            constraint.AffectsRotationZ = true;
+            constraint.AimAxis = localAim.normalized;
+            constraint.UpAxis = Vector3.up;
+            constraint.WorldUp = VRCConstraintBase.WorldUpType.None;
+            constraint.Sources.Clear();
+            constraint.Sources.Add(new VRCConstraintSource(lowerArm, 1f));
             constraint.ApplyConfigurationChanges();
         }
 
@@ -654,6 +690,25 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.Sources.Clear();
             constraint.Sources.Add(new VRCConstraintSource(handSource, 1f));
 
+            constraint.ApplyConfigurationChanges();
+        }
+
+        private static void AddVRCWristRotateConstraintAllAxes(Transform target, Transform source, float weight)
+        {
+            var constraint = target.gameObject.AddComponent<VRCRotationConstraint>();
+            constraint.IsActive = true;
+            constraint.GlobalWeight = weight;
+            constraint.Locked = true;
+            constraint.SolveInLocalSpace = false;
+            constraint.FreezeToWorld = false;
+            constraint.RebakeOffsetsWhenUnfrozen = false;
+            constraint.RotationAtRest = target.localEulerAngles;
+            constraint.RotationOffset = Vector3.zero;
+            constraint.AffectsRotationX = true;
+            constraint.AffectsRotationY = true;
+            constraint.AffectsRotationZ = true;
+            constraint.Sources.Clear();
+            constraint.Sources.Add(new VRCConstraintSource(source, 1f));
             constraint.ApplyConfigurationChanges();
         }
 
@@ -723,6 +778,22 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.locked = true;
         }
 
+        private static void AddUnityWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, string sideLabel)
+        {
+            var constraint = target.gameObject.AddComponent<AimConstraint>();
+            constraint.constraintActive = false;
+            constraint.locked = false;
+            constraint.weight = 1f;
+            constraint.rotationAxis = Axis.X | Axis.Y | Axis.Z;
+            constraint.AddSource(new ConstraintSource { sourceTransform = lowerArm, weight = 1f });
+            var localAim = lowerArm.localPosition;
+            if (localAim.sqrMagnitude < 1e-8f) localAim = sideLabel == "L" ? Vector3.right : Vector3.left;
+            constraint.aimVector = localAim.normalized;
+            constraint.worldUpType = AimConstraint.WorldUpType.None;
+            constraint.constraintActive = true;
+            constraint.locked = true;
+        }
+
         private static void AddUnityUpperArmTwistConstraint(
             Transform target,
             Transform source,
@@ -766,6 +837,19 @@ namespace NDMFVRoidArmPatch.Editor
             };
 
             constraint.AddSource(src);
+            constraint.rotationOffset = Vector3.zero;
+            constraint.constraintActive = true;
+            constraint.locked = true;
+        }
+
+        private static void AddUnityWristRotateConstraintAllAxes(Transform target, Transform source, float weight)
+        {
+            var constraint = target.gameObject.AddComponent<RotationConstraint>();
+            constraint.constraintActive = false;
+            constraint.locked = false;
+            constraint.weight = weight;
+            constraint.rotationAxis = Axis.X | Axis.Y | Axis.Z;
+            constraint.AddSource(new ConstraintSource { sourceTransform = source, weight = 1f });
             constraint.rotationOffset = Vector3.zero;
             constraint.constraintActive = true;
             constraint.locked = true;
