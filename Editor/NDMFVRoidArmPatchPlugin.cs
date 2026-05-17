@@ -1019,9 +1019,7 @@ namespace NDMFVRoidArmPatch.Editor
                 {
                     var bw = weights[vi];
                     float lowerW = GetWeightForBoneIndex(bw, lowerIdx);
-                    float handW = GetWeightForBoneIndex(bw, handIdx);
-                    float armW = lowerW + handW;
-                    if (armW <= 1e-6f) continue;
+                    if (lowerW <= 1e-6f) continue;
 
                     Vector3 world = smr.transform.TransformPoint(vertices[vi]);
                     float t = Mathf.Clamp01(Vector3.Dot(world - a, axis) / dist);
@@ -1034,14 +1032,13 @@ namespace NDMFVRoidArmPatch.Editor
                     float w1 = i0 == i1 ? 0f : s;
 
                     var pairs = new List<(int idx, float w)>(6);
-                    AddOrAccumulate(pairs, twistBoneIndices[i0], armW * w0);
-                    if (w1 > 0f) AddOrAccumulate(pairs, twistBoneIndices[i1], armW * w1);
+                    AddOrAccumulate(pairs, twistBoneIndices[i0], lowerW * w0);
+                    if (w1 > 0f) AddOrAccumulate(pairs, twistBoneIndices[i1], lowerW * w1);
                     AddOrAccumulate(pairs, bw.boneIndex0, bw.weight0);
                     AddOrAccumulate(pairs, bw.boneIndex1, bw.weight1);
                     AddOrAccumulate(pairs, bw.boneIndex2, bw.weight2);
                     AddOrAccumulate(pairs, bw.boneIndex3, bw.weight3);
                     RemoveBone(pairs, lowerIdx);
-                    RemoveBone(pairs, handIdx);
                     pairs.Sort((x,y)=>y.w.CompareTo(x.w));
                     if (pairs.Count > 4) pairs.RemoveRange(4, pairs.Count - 4);
                     Normalize(pairs);
