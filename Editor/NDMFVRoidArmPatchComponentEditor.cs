@@ -111,6 +111,9 @@ namespace NDMFVRoidArmPatch.Editor
             DrawTopRow(component, isPreviewing);
             EditorGUILayout.Space(4);
 
+            DrawMultipleComponentsWarning(component, avatarRoot);
+            EditorGUILayout.Space(4);
+
             DrawInfoBox();
             EditorGUILayout.Space(6);
 
@@ -174,6 +177,59 @@ namespace NDMFVRoidArmPatch.Editor
             );
 
             EditorGUILayout.HelpBox(message, MessageType.Info);
+        }
+
+        private void DrawMultipleComponentsWarning(NDMFVRoidArmPatchComponent component, GameObject avatarRoot)
+        {
+            if (component == null || avatarRoot == null) return;
+
+            var components = avatarRoot.GetComponentsInChildren<NDMFVRoidArmPatchComponent>(true);
+            if (components == null || components.Length <= 1) return;
+
+            var selected = SelectPreferredComponentForBuild(components, avatarRoot);
+            bool thisWillBeUsed = selected == component;
+
+            string message = thisWillBeUsed
+                ? T("複数箇所で設定されています。 このコンポーネントの設定値が使用されます。", "This component is configured in multiple places. The values on this component will be used.")
+                : T("複数箇所で設定されています。 このコンポーネントでの設定は無視されます。", "This component is configured in multiple places. The values on this component will be ignored.");
+
+            EditorGUILayout.HelpBox(message, MessageType.Warning);
+        }
+
+        private static NDMFVRoidArmPatchComponent SelectPreferredComponentForBuild(
+            NDMFVRoidArmPatchComponent[] components,
+            GameObject avatarRoot)
+        {
+            NDMFVRoidArmPatchComponent best = components[0];
+            int bestScore = int.MinValue;
+            Transform root = avatarRoot != null ? avatarRoot.transform : null;
+
+            for (int i = 0; i < components.Length; i++)
+            {
+                var c = components[i];
+                if (c == null) continue;
+                int depth = GetDepthFromRoot(c.transform, root);
+                int score = depth;
+                if (c.wristTwistBoneType != WristTwistBoneType.None) score += 1000;
+                if (score > bestScore)
+                {
+                    best = c;
+                    bestScore = score;
+                }
+            }
+
+            return best;
+        }
+
+        private static int GetDepthFromRoot(Transform t, Transform root)
+        {
+            int depth = 0;
+            while (t != null && t != root)
+            {
+                depth++;
+                t = t.parent;
+            }
+            return depth;
         }
 
         private void DrawShoulderRows()
