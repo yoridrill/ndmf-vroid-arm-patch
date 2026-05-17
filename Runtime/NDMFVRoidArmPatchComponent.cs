@@ -75,6 +75,9 @@ namespace NDMFVRoidArmPatch
         [FormerlySerializedAs("wristTwistAxis")]
         public TwistAxis wristRollAxis = TwistAxis.X;
 
+        [Tooltip("Wrist pitch axis used for twist extractor up vector.")]
+        public TwistAxis wristPitchAxis = TwistAxis.Y;
+
         [Tooltip("How strongly wrist roll follows the hand.")]
         [Range(0f, 1f)]
         [FormerlySerializedAs("wristTwistWeight")]

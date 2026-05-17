@@ -51,6 +51,7 @@ namespace NDMFVRoidArmPatch.Editor
         private SerializedProperty wristThicknessScaleProp;
         private SerializedProperty wristWidthScaleProp;
         private SerializedProperty wristRollAxisProp;
+        private SerializedProperty wristPitchAxisProp;
         private SerializedProperty wristRollWeightProp;
         private SerializedProperty wristTwistBoneTypeProp;
         private SerializedProperty wristTwistBoneCountProp;
@@ -83,6 +84,7 @@ namespace NDMFVRoidArmPatch.Editor
             wristThicknessScaleProp = serializedObject.FindProperty("wristThicknessScale");
             wristWidthScaleProp = serializedObject.FindProperty("wristWidthScale");
             wristRollAxisProp = serializedObject.FindProperty("wristRollAxis");
+            wristPitchAxisProp = serializedObject.FindProperty("wristPitchAxis");
             wristRollWeightProp = serializedObject.FindProperty("wristRollWeight");
             wristTwistBoneTypeProp = serializedObject.FindProperty("wristTwistBoneType");
             wristTwistBoneCountProp = serializedObject.FindProperty("wristTwistBoneCount");
@@ -323,6 +325,8 @@ namespace NDMFVRoidArmPatch.Editor
                 );
                 DrawAxisToolbar(valueRect, wristRollAxisProp);
 
+                DrawWristPitchAxisRow(component);
+
                 using (new EditorGUI.DisabledScope(IsWristTwistBoneModeActive()))
                 {
                     DrawShoulderSubRow(
@@ -354,6 +358,60 @@ namespace NDMFVRoidArmPatch.Editor
                 DrawTwistBoneCountRow();
                 DrawWristSkinMaterialRow(component);
             }
+        }
+
+        private void DrawWristPitchAxisRow(NDMFVRoidArmPatchComponent component)
+        {
+            EnsurePitchAxis(component);
+            Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            Rect spacerRect = new Rect(rect.x, rect.y, ToggleWidth, rect.height);
+            Rect mainLabelRect = new Rect(spacerRect.xMax + 2f, rect.y, MainLabelWidth, rect.height);
+            Rect subLabelRect = new Rect(mainLabelRect.xMax + Gap, rect.y, SubLabelWidth, rect.height);
+            Rect valueRect = new Rect(subLabelRect.xMax + 4f, rect.y, rect.xMax - (subLabelRect.xMax + 4f), rect.height);
+            EditorGUI.LabelField(mainLabelRect, GUIContent.none);
+            EditorGUI.LabelField(subLabelRect, new GUIContent(T("Pitch Axis", "Pitch Axis"), T("WristTwistExtractorのUp軸。Roll Axisと異なる軸のみ選択可。", "Up axis for WristTwistExtractor. Must differ from Roll Axis.")));
+
+            int roll = wristRollAxisProp.enumValueIndex;
+            var labels = new[] { "X", "Y", "Z" };
+            int current = wristPitchAxisProp.enumValueIndex;
+            if (current == roll) current = DetectPitchAxis(component, roll);
+
+            using (new EditorGUI.DisabledScope(false))
+            {
+                // custom popup excluding roll axis
+                int[] axisMap = roll == 0 ? new[] { 1, 2 } : roll == 1 ? new[] { 0, 2 } : new[] { 0, 1 };
+                string[] opts = { labels[axisMap[0]], labels[axisMap[1]] };
+                int selected = current == axisMap[1] ? 1 : 0;
+                int next = EditorGUI.Popup(valueRect, selected, opts);
+                wristPitchAxisProp.enumValueIndex = axisMap[next];
+            }
+        }
+
+        private void EnsurePitchAxis(NDMFVRoidArmPatchComponent component)
+        {
+            if (wristPitchAxisProp.enumValueIndex == wristRollAxisProp.enumValueIndex)
+            {
+                wristPitchAxisProp.enumValueIndex = DetectPitchAxis(component, wristRollAxisProp.enumValueIndex);
+            }
+        }
+
+        private int DetectPitchAxis(NDMFVRoidArmPatchComponent component, int rollAxisIndex)
+        {
+            var avatarRoot = FindAvatarRootForComponent(component);
+            var hand = avatarRoot != null ? avatarRoot.GetComponentInChildren<Animator>(true)?.GetBoneTransform(HumanBodyBones.LeftHand) : null;
+            if (hand == null) return rollAxisIndex == 0 ? 1 : 0;
+            Vector3 avatarUp = avatarRoot.transform.up.normalized;
+            int[] candidates = rollAxisIndex == 0 ? new[] { 1, 2 } : rollAxisIndex == 1 ? new[] { 0, 2 } : new[] { 0, 1 };
+            int handBackAxis = candidates[0];
+            float best = float.NegativeInfinity;
+            foreach (var a in candidates)
+            {
+                Vector3 axisWorld = hand.TransformDirection(a == 0 ? Vector3.right : a == 1 ? Vector3.up : Vector3.forward).normalized;
+                float dot = Mathf.Abs(Vector3.Dot(axisWorld, avatarUp));
+                if (dot > best) { best = dot; handBackAxis = a; }
+            }
+            for (int a = 0; a < 3; a++) if (a != rollAxisIndex && a != handBackAxis) return a;
+            return candidates[0];
         }
 
         private void DrawThumbRow()

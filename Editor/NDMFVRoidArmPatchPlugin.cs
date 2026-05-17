@@ -121,6 +121,7 @@ namespace NDMFVRoidArmPatch.Editor
                 wristThicknessScale = component.wristThicknessScale,
                 wristWidthScale = component.wristWidthScale,
                 wristTwistAxis = component.wristRollAxis,
+                wristPitchAxis = component.wristPitchAxis,
                 wristTwistWeight = component.wristRollWeight,
                 wristTwistBoneType = component.wristTwistBoneType,
                 wristTwistBoneCount = component.wristTwistBoneCount,
@@ -264,6 +265,7 @@ namespace NDMFVRoidArmPatch.Editor
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
+                settings.wristPitchAxis,
                 settings.wristTwistWeight,
                 settings.wristTwistBoneType,
                 settings.wristTwistBoneCount,
@@ -280,6 +282,7 @@ namespace NDMFVRoidArmPatch.Editor
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
+                settings.wristPitchAxis,
                 settings.wristTwistWeight,
                 settings.wristTwistBoneType,
                 settings.wristTwistBoneCount,
@@ -297,6 +300,7 @@ namespace NDMFVRoidArmPatch.Editor
             float thicknessScale,
             float widthScale,
             TwistAxis wristTwistAxis,
+            TwistAxis wristPitchAxis,
             float wristTwistWeight,
             WristTwistBoneType twistBoneType,
             WristTwistBoneCount twistBoneCount,
@@ -317,11 +321,11 @@ namespace NDMFVRoidArmPatch.Editor
                 wristTwistExtractor = CreateChildAlignedBone(originalHand.name + "_WristTwistExtractor", originalHand);
                 if (constraintMode == ConstraintMode.VRChatConstraints)
                 {
-                    AddVRCWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel);
+                    AddVRCWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
                 }
                 else
                 {
-                    AddUnityWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel);
+                    AddUnityWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
                 }
             }
 
@@ -619,7 +623,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.ApplyConfigurationChanges();
         }
 
-        private static void AddVRCWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel)
+        private static void AddVRCWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel, TwistAxis rollAxis, TwistAxis pitchAxis)
         {
             var constraint = target.gameObject.AddComponent<VRCAimConstraint>();
             var localAim = lowerArm.localPosition;
@@ -635,10 +639,11 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.AffectsRotationZ = true;
             // WristTwistExtractor is parented under Hand and aims to LowerArm (opposite direction of TwistAim).
             // Use the inverted aim axis so copied rotation aligns with twist-bone forward convention.
-            constraint.AimAxis = (-localAim).normalized;
-            constraint.UpAxis = Vector3.up;
+            constraint.AimAxis = ToAxisVector(rollAxis);
+            constraint.UpAxis = ToAxisVector(pitchAxis);
             constraint.WorldUp = VRCConstraintBase.WorldUpType.ObjectRotationUp;
             constraint.WorldUpTransform = hand;
+            constraint.WorldUpVector = ToAxisVector(pitchAxis);
             constraint.Sources.Clear();
             constraint.Sources.Add(new VRCConstraintSource(lowerArm, 1f));
             constraint.ApplyConfigurationChanges();
@@ -783,7 +788,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.locked = true;
         }
 
-        private static void AddUnityWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel)
+        private static void AddUnityWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel, TwistAxis rollAxis, TwistAxis pitchAxis)
         {
             var constraint = target.gameObject.AddComponent<AimConstraint>();
             constraint.constraintActive = false;
@@ -795,9 +800,11 @@ namespace NDMFVRoidArmPatch.Editor
             if (localAim.sqrMagnitude < 1e-8f) localAim = sideLabel == "L" ? Vector3.right : Vector3.left;
             // WristTwistExtractor is parented under Hand and aims to LowerArm (opposite direction of TwistAim).
             // Use the inverted aim vector so copied rotation aligns with twist-bone forward convention.
-            constraint.aimVector = (-localAim).normalized;
+            constraint.aimVector = ToAxisVector(rollAxis);
+            constraint.upVector = ToAxisVector(pitchAxis);
             constraint.worldUpType = AimConstraint.WorldUpType.ObjectRotationUp;
             constraint.worldUpObject = hand;
+            constraint.worldUpVector = ToAxisVector(pitchAxis);
             constraint.constraintActive = true;
             constraint.locked = true;
         }
@@ -893,6 +900,17 @@ namespace NDMFVRoidArmPatch.Editor
                 case TwistAxis.Y: return Axis.Y;
                 case TwistAxis.Z: return Axis.Z;
                 default: return Axis.X;
+            }
+        }
+
+        private static Vector3 ToAxisVector(TwistAxis axis)
+        {
+            switch (axis)
+            {
+                case TwistAxis.X: return Vector3.right;
+                case TwistAxis.Y: return Vector3.up;
+                case TwistAxis.Z: return Vector3.forward;
+                default: return Vector3.right;
             }
         }
 
@@ -1140,6 +1158,7 @@ namespace NDMFVRoidArmPatch.Editor
                 wristThicknessScale = c.wristThicknessScale,
                 wristWidthScale = c.wristWidthScale,
                 wristTwistAxis = c.wristRollAxis,
+                wristPitchAxis = c.wristPitchAxis,
                 wristTwistWeight = c.wristRollWeight,
                 wristTwistBoneType = c.wristTwistBoneType,
                 wristTwistBoneCount = c.wristTwistBoneCount,
@@ -1218,6 +1237,7 @@ namespace NDMFVRoidArmPatch.Editor
             public float wristThicknessScale;
             public float wristWidthScale;
             public TwistAxis wristTwistAxis;
+            public TwistAxis wristPitchAxis;
             public float wristTwistWeight;
             public WristTwistBoneType wristTwistBoneType;
             public WristTwistBoneCount wristTwistBoneCount;
