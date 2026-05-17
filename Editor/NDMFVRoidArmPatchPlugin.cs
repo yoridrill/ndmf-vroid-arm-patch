@@ -633,7 +633,9 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.AffectsRotationX = true;
             constraint.AffectsRotationY = true;
             constraint.AffectsRotationZ = true;
-            constraint.AimAxis = localAim.normalized;
+            // WristTwistExtractor is parented under Hand and aims to LowerArm (opposite direction of TwistAim).
+            // Use the inverted aim axis so copied rotation aligns with twist-bone forward convention.
+            constraint.AimAxis = (-localAim).normalized;
             constraint.UpAxis = Vector3.up;
             constraint.WorldUp = VRCConstraintBase.WorldUpType.None;
             constraint.Sources.Clear();
@@ -788,7 +790,9 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.AddSource(new ConstraintSource { sourceTransform = lowerArm, weight = 1f });
             var localAim = lowerArm.localPosition;
             if (localAim.sqrMagnitude < 1e-8f) localAim = sideLabel == "L" ? Vector3.right : Vector3.left;
-            constraint.aimVector = localAim.normalized;
+            // WristTwistExtractor is parented under Hand and aims to LowerArm (opposite direction of TwistAim).
+            // Use the inverted aim vector so copied rotation aligns with twist-bone forward convention.
+            constraint.aimVector = (-localAim).normalized;
             constraint.worldUpType = AimConstraint.WorldUpType.None;
             constraint.constraintActive = true;
             constraint.locked = true;
