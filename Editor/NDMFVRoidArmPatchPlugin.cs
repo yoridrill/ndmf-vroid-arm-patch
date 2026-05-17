@@ -334,6 +334,19 @@ namespace NDMFVRoidArmPatch.Editor
                 }
 
                 replaceMap[originalLowerArm] = wristDef;
+
+                if (verboseLog && originalHand != null)
+                {
+                    LogWristDebug(
+                        sideLabel,
+                        "WristDef",
+                        originalLowerArm,
+                        originalHand,
+                        wristDef,
+                        wristTwistAxis,
+                        wristTwistWeight
+                    );
+                }
             }
             else if (originalHand != null)
             {
@@ -341,6 +354,18 @@ namespace NDMFVRoidArmPatch.Editor
                 var twistAim = CreateSiblingBone(originalLowerArm.name + "_TwistAim", originalLowerArm.parent, originalLowerArm);
                 if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCUpperArmAimConstraint(twistAim, originalHand, sideLabel);
                 else AddUnityUpperArmAimConstraint(twistAim, originalHand, sideLabel);
+
+                if (verboseLog)
+                {
+                    Vector3 axis = (originalHand.position - originalLowerArm.position).normalized;
+                    Debug.Log(
+                        $"[NDMF VRoid Arm Patch] [{sideLabel}] TwistAim created. " +
+                        $"name={twistAim.name}, parent={GetPath(twistAim.parent)}, " +
+                        $"lowerArm={originalLowerArm.name}, hand={originalHand.name}, " +
+                        $"worldAxis=({axis.x:F4},{axis.y:F4},{axis.z:F4}), " +
+                        $"distance={Vector3.Distance(originalLowerArm.position, originalHand.position):F6}, " +
+                        $"twistAxis={wristTwistAxis}, count={twistCount}");
+                }
 
                 var twistBones = new List<Transform>(twistCount);
                 var factors = new List<float>(twistCount);
@@ -354,6 +379,19 @@ namespace NDMFVRoidArmPatch.Editor
                     factors.Add(t);
                     if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraint(b, originalHand, wristTwistAxis, t);
                     else AddUnityWristRotateConstraint(b, originalHand, wristTwistAxis, t);
+
+                    if (verboseLog)
+                    {
+                        LogWristDebug(
+                            sideLabel,
+                            $"Twist[{i}]",
+                            originalLowerArm,
+                            originalHand,
+                            b,
+                            wristTwistAxis,
+                            t
+                        );
+                    }
                 }
                 replaceMap[originalLowerArm] = twistBones[0];
                 ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, verboseLog);
@@ -964,6 +1002,29 @@ namespace NDMFVRoidArmPatch.Editor
             if (pairs.Count > 2) { bw.boneIndex2 = pairs[2].idx; bw.weight2 = pairs[2].w; }
             if (pairs.Count > 3) { bw.boneIndex3 = pairs[3].idx; bw.weight3 = pairs[3].w; }
             return bw;
+        }
+
+        private static void LogWristDebug(
+            string sideLabel,
+            string label,
+            Transform lowerArm,
+            Transform hand,
+            Transform target,
+            TwistAxis axis,
+            float weight)
+        {
+            Vector3 laToHand = hand.position - lowerArm.position;
+            Vector3 laToTarget = target.position - lowerArm.position;
+            float dist = laToHand.magnitude;
+            float t = dist > 1e-6f ? Vector3.Dot(laToTarget, laToHand.normalized) / dist : 0f;
+
+            Debug.Log(
+                $"[NDMF VRoid Arm Patch] [{sideLabel}] {label} debug. " +
+                $"target={target.name}, parent={GetPath(target.parent)}, " +
+                $"worldPos=({target.position.x:F4},{target.position.y:F4},{target.position.z:F4}), " +
+                $"localPos=({target.localPosition.x:F4},{target.localPosition.y:F4},{target.localPosition.z:F4}), " +
+                $"localEuler=({target.localEulerAngles.x:F2},{target.localEulerAngles.y:F2},{target.localEulerAngles.z:F2}), " +
+                $"axis={axis}, weight={weight:F4}, projectedT={t:F4}");
         }
 
         private static AggregatedSettings Aggregate(NDMFVRoidArmPatchComponent[] components, GameObject avatarRoot)
