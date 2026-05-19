@@ -355,7 +355,10 @@ namespace NDMFVRoidArmPatch.Editor
                 );
 
                 DrawTwistBoneTypeRow();
-                DrawTwistBoneCountRow();
+                using (new EditorGUI.DisabledScope((WristTwistBoneType)wristTwistBoneTypeProp.enumValueIndex == WristTwistBoneType.None))
+                {
+                    DrawTwistBoneCountRow();
+                }
                 DrawWristSkinMaterialRow(component);
             }
         }
