@@ -263,6 +263,8 @@ namespace NDMFVRoidArmPatch.Editor
                 "L",
                 animator.GetBoneTransform(HumanBodyBones.LeftLowerArm),
                 animator.GetBoneTransform(HumanBodyBones.LeftHand),
+                animator.GetBoneTransform(HumanBodyBones.LeftThumbIntermediate),
+                animator.GetBoneTransform(HumanBodyBones.LeftThumbDistal),
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
@@ -281,6 +283,8 @@ namespace NDMFVRoidArmPatch.Editor
                 "R",
                 animator.GetBoneTransform(HumanBodyBones.RightLowerArm),
                 animator.GetBoneTransform(HumanBodyBones.RightHand),
+                animator.GetBoneTransform(HumanBodyBones.RightThumbIntermediate),
+                animator.GetBoneTransform(HumanBodyBones.RightThumbDistal),
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
@@ -300,6 +304,8 @@ namespace NDMFVRoidArmPatch.Editor
             string sideLabel,
             Transform originalLowerArm,
             Transform originalHand,
+            Transform originalThumbIntermediate,
+            Transform originalThumbDistal,
             float thicknessScale,
             float widthScale,
             TwistAxis wristTwistAxis,
@@ -419,7 +425,16 @@ namespace NDMFVRoidArmPatch.Editor
                     }
                 }
                 replaceMap[originalLowerArm] = twistBones[0];
-                ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, twistBoneType, skinMaterialName, verboseLog);
+                ReweightForearmVerticesToTwistBones(
+                    avatarRoot,
+                    originalLowerArm,
+                    originalHand,
+                    originalThumbIntermediate,
+                    originalThumbDistal,
+                    twistBones,
+                    twistBoneType,
+                    skinMaterialName,
+                    verboseLog);
 
                 if (verboseLog)
                 {
@@ -987,6 +1002,8 @@ namespace NDMFVRoidArmPatch.Editor
             GameObject avatarRoot,
             Transform lowerArm,
             Transform hand,
+            Transform thumbIntermediate,
+            Transform thumbDistal,
             List<Transform> twistBones,
             WristTwistBoneType twistBoneType,
             string skinMaterialName,
@@ -998,6 +1015,8 @@ namespace NDMFVRoidArmPatch.Editor
                 if (smr.sharedMesh == null) continue;
                 int lowerIdx = Array.IndexOf(smr.bones, lowerArm);
                 int handIdx = Array.IndexOf(smr.bones, hand);
+                int thumbIntermediateIdx = Array.IndexOf(smr.bones, thumbIntermediate);
+                int thumbDistalIdx = Array.IndexOf(smr.bones, thumbDistal);
                 if (lowerIdx < 0 && handIdx < 0) continue;
 
                 bool hasArmWeights = false;
@@ -1042,6 +1061,8 @@ namespace NDMFVRoidArmPatch.Editor
                     var bw = weights[vi];
                     float lowerW = GetWeightForBoneIndex(bw, lowerIdx);
                     float handW = GetWeightForBoneIndex(bw, handIdx);
+                    float thumbIntermediateW = GetWeightForBoneIndex(bw, thumbIntermediateIdx);
+                    float thumbDistalW = GetWeightForBoneIndex(bw, thumbDistalIdx);
                     float armW = lowerW + handW;
                     if (armW <= 1e-6f) continue;
 
@@ -1049,13 +1070,16 @@ namespace NDMFVRoidArmPatch.Editor
                     if (twistBoneType == WristTwistBoneType.SkinOnly && !isSkinVertex)
                     {
                         var nonSkinPairs = new List<(int idx, float w)>(6);
-                        AddOrAccumulate(nonSkinPairs, twistBoneIndices[0], armW);
+                        float nonSkinToRootTwistW = armW + thumbIntermediateW + thumbDistalW;
+                        AddOrAccumulate(nonSkinPairs, twistBoneIndices[0], nonSkinToRootTwistW);
                         AddOrAccumulate(nonSkinPairs, bw.boneIndex0, bw.weight0);
                         AddOrAccumulate(nonSkinPairs, bw.boneIndex1, bw.weight1);
                         AddOrAccumulate(nonSkinPairs, bw.boneIndex2, bw.weight2);
                         AddOrAccumulate(nonSkinPairs, bw.boneIndex3, bw.weight3);
                         RemoveBone(nonSkinPairs, lowerIdx);
                         RemoveBone(nonSkinPairs, handIdx);
+                        RemoveBone(nonSkinPairs, thumbIntermediateIdx);
+                        RemoveBone(nonSkinPairs, thumbDistalIdx);
                         nonSkinPairs.Sort((x, y) => y.w.CompareTo(x.w));
                         if (nonSkinPairs.Count > 4) nonSkinPairs.RemoveRange(4, nonSkinPairs.Count - 4);
                         Normalize(nonSkinPairs);
