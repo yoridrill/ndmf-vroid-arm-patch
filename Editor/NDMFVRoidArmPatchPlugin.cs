@@ -265,7 +265,6 @@ namespace NDMFVRoidArmPatch.Editor
                 animator.GetBoneTransform(HumanBodyBones.LeftHand),
                 animator.GetBoneTransform(HumanBodyBones.LeftThumbProximal),
                 animator.GetBoneTransform(HumanBodyBones.LeftThumbIntermediate),
-                animator.GetBoneTransform(HumanBodyBones.LeftThumbDistal),
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
@@ -286,7 +285,6 @@ namespace NDMFVRoidArmPatch.Editor
                 animator.GetBoneTransform(HumanBodyBones.RightHand),
                 animator.GetBoneTransform(HumanBodyBones.RightThumbProximal),
                 animator.GetBoneTransform(HumanBodyBones.RightThumbIntermediate),
-                animator.GetBoneTransform(HumanBodyBones.RightThumbDistal),
                 settings.wristThicknessScale,
                 settings.wristWidthScale,
                 settings.wristTwistAxis,
@@ -308,7 +306,6 @@ namespace NDMFVRoidArmPatch.Editor
             Transform originalHand,
             Transform originalThumbProximal,
             Transform originalThumbIntermediate,
-            Transform originalThumbDistal,
             float thicknessScale,
             float widthScale,
             TwistAxis wristTwistAxis,
@@ -434,7 +431,6 @@ namespace NDMFVRoidArmPatch.Editor
                     originalHand,
                     originalThumbProximal,
                     originalThumbIntermediate,
-                    originalThumbDistal,
                     twistBones,
                     twistBoneType,
                     skinMaterialName,
@@ -1008,7 +1004,6 @@ namespace NDMFVRoidArmPatch.Editor
             Transform hand,
             Transform thumbProximal,
             Transform thumbIntermediate,
-            Transform thumbDistal,
             List<Transform> twistBones,
             WristTwistBoneType twistBoneType,
             string skinMaterialName,
@@ -1022,7 +1017,6 @@ namespace NDMFVRoidArmPatch.Editor
                 int handIdx = Array.IndexOf(smr.bones, hand);
                 int thumbProximalIdx = Array.IndexOf(smr.bones, thumbProximal);
                 int thumbIntermediateIdx = Array.IndexOf(smr.bones, thumbIntermediate);
-                int thumbDistalIdx = Array.IndexOf(smr.bones, thumbDistal);
                 if (lowerIdx < 0 && handIdx < 0) continue;
 
                 bool hasArmWeights = false;
@@ -1069,7 +1063,6 @@ namespace NDMFVRoidArmPatch.Editor
                     float handW = GetWeightForBoneIndex(bw, handIdx);
                     float thumbProximalW = GetWeightForBoneIndex(bw, thumbProximalIdx);
                     float thumbIntermediateW = GetWeightForBoneIndex(bw, thumbIntermediateIdx);
-                    float thumbDistalW = GetWeightForBoneIndex(bw, thumbDistalIdx);
                     float armW = lowerW + handW;
                     if (armW <= 1e-6f) continue;
 
@@ -1077,7 +1070,7 @@ namespace NDMFVRoidArmPatch.Editor
                     if (twistBoneType == WristTwistBoneType.SkinOnly && !isSkinVertex)
                     {
                         var nonSkinPairs = new List<(int idx, float w)>(6);
-                        float nonSkinToRootTwistW = armW + thumbProximalW + thumbIntermediateW + thumbDistalW;
+                        float nonSkinToRootTwistW = armW + thumbProximalW + thumbIntermediateW;
                         AddOrAccumulate(nonSkinPairs, twistBoneIndices[0], nonSkinToRootTwistW);
                         AddOrAccumulate(nonSkinPairs, bw.boneIndex0, bw.weight0);
                         AddOrAccumulate(nonSkinPairs, bw.boneIndex1, bw.weight1);
@@ -1087,7 +1080,6 @@ namespace NDMFVRoidArmPatch.Editor
                         RemoveBone(nonSkinPairs, handIdx);
                         RemoveBone(nonSkinPairs, thumbProximalIdx);
                         RemoveBone(nonSkinPairs, thumbIntermediateIdx);
-                        RemoveBone(nonSkinPairs, thumbDistalIdx);
                         nonSkinPairs.Sort((x, y) => y.w.CompareTo(x.w));
                         if (nonSkinPairs.Count > 4) nonSkinPairs.RemoveRange(4, nonSkinPairs.Count - 4);
                         Normalize(nonSkinPairs);
