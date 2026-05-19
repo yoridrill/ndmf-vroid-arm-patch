@@ -1082,7 +1082,6 @@ namespace NDMFVRoidArmPatch.Editor
                     AddOrAccumulate(pairs, bw.boneIndex2, bw.weight2);
                     AddOrAccumulate(pairs, bw.boneIndex3, bw.weight3);
                     RemoveBone(pairs, lowerIdx);
-                    RemoveBone(pairs, handIdx);
                     pairs.Sort((x,y)=>y.w.CompareTo(x.w));
                     if (pairs.Count > 4) pairs.RemoveRange(4, pairs.Count - 4);
                     Normalize(pairs);
