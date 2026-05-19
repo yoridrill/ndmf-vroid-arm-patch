@@ -47,15 +47,15 @@ namespace NDMFVRoidArmPatch.Editor
         private SerializedProperty upperArmRollAxisProp;
         private SerializedProperty upperArmRollWeightProp;
 
-        private SerializedProperty enableWristFixProp;
-        private SerializedProperty wristThicknessScaleProp;
-        private SerializedProperty wristWidthScaleProp;
-        private SerializedProperty wristRollAxisProp;
-        private SerializedProperty wristPitchAxisProp;
-        private SerializedProperty wristRollWeightProp;
-        private SerializedProperty wristTwistBoneTypeProp;
-        private SerializedProperty wristTwistBoneCountProp;
-        private SerializedProperty wristSkinMaterialNameProp;
+        private SerializedProperty enableForearmFixProp;
+        private SerializedProperty forearmThicknessScaleProp;
+        private SerializedProperty forearmWidthScaleProp;
+        private SerializedProperty forearmRollAxisProp;
+        private SerializedProperty forearmPitchAxisProp;
+        private SerializedProperty forearmRollWeightProp;
+        private SerializedProperty forearmTwistBoneTypeProp;
+        private SerializedProperty forearmTwistBoneCountProp;
+        private SerializedProperty forearmSkinMaterialNameProp;
 
         private SerializedProperty enableThumbFixProp;
         private SerializedProperty thumbEulerOffsetProp;
@@ -80,15 +80,15 @@ namespace NDMFVRoidArmPatch.Editor
             upperArmRollAxisProp = serializedObject.FindProperty("upperArmRollAxis");
             upperArmRollWeightProp = serializedObject.FindProperty("upperArmRollWeight");
 
-            enableWristFixProp = serializedObject.FindProperty("enableWristFix");
-            wristThicknessScaleProp = serializedObject.FindProperty("wristThicknessScale");
-            wristWidthScaleProp = serializedObject.FindProperty("wristWidthScale");
-            wristRollAxisProp = serializedObject.FindProperty("wristRollAxis");
-            wristPitchAxisProp = serializedObject.FindProperty("wristPitchAxis");
-            wristRollWeightProp = serializedObject.FindProperty("wristRollWeight");
-            wristTwistBoneTypeProp = serializedObject.FindProperty("wristTwistBoneType");
-            wristTwistBoneCountProp = serializedObject.FindProperty("wristTwistBoneCount");
-            wristSkinMaterialNameProp = serializedObject.FindProperty("wristSkinMaterialName");
+            enableForearmFixProp = serializedObject.FindProperty("enableForearmFix");
+            forearmThicknessScaleProp = serializedObject.FindProperty("forearmThicknessScale");
+            forearmWidthScaleProp = serializedObject.FindProperty("forearmWidthScale");
+            forearmRollAxisProp = serializedObject.FindProperty("forearmRollAxis");
+            forearmPitchAxisProp = serializedObject.FindProperty("forearmPitchAxis");
+            forearmRollWeightProp = serializedObject.FindProperty("forearmRollWeight");
+            forearmTwistBoneTypeProp = serializedObject.FindProperty("forearmTwistBoneType");
+            forearmTwistBoneCountProp = serializedObject.FindProperty("forearmTwistBoneCount");
+            forearmSkinMaterialNameProp = serializedObject.FindProperty("forearmSkinMaterialName");
 
             enableThumbFixProp = serializedObject.FindProperty("enableThumbFix");
             thumbEulerOffsetProp = serializedObject.FindProperty("thumbEulerOffset");
@@ -121,7 +121,7 @@ namespace NDMFVRoidArmPatch.Editor
 
             DrawShoulderRows();
             EditorGUILayout.Space(2);
-            DrawWristRows(component);
+            DrawForearmRows(component);
             EditorGUILayout.Space(2);
             DrawThumbRow();
             EditorGUILayout.Space(8);
@@ -170,7 +170,7 @@ namespace NDMFVRoidArmPatch.Editor
             int constraintCount = 0;
 
             if (enableShoulderFixProp.boolValue) constraintCount += 4;
-            if (enableWristFixProp.boolValue) constraintCount += 2;
+            if (enableForearmFixProp.boolValue) constraintCount += 2;
             if (enableThumbFixProp.boolValue) constraintCount += 6;
 
             string message = T(
@@ -212,7 +212,7 @@ namespace NDMFVRoidArmPatch.Editor
                 if (c == null) continue;
                 int depth = GetDepthFromRoot(c.transform, root);
                 int score = depth;
-                if (c.wristTwistBoneType != WristTwistBoneType.None) score += 1000;
+                if (c.forearmTwistBoneType != ForearmTwistBoneType.None) score += 1000;
                 if (score > bestScore)
                 {
                     best = c;
@@ -291,9 +291,9 @@ namespace NDMFVRoidArmPatch.Editor
             }
         }
 
-        private void DrawWristRows(NDMFVRoidArmPatchComponent component)
+        private void DrawForearmRows(NDMFVRoidArmPatchComponent component)
         {
-            var wristScaleAxes = GetWristScaleAxisLabels();
+            var forearmScaleAxes = GetForearmScaleAxisLabels();
 
             Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
 
@@ -302,7 +302,7 @@ namespace NDMFVRoidArmPatch.Editor
             Rect subLabelRect = new Rect(mainLabelRect.xMax + Gap, rect.y, SubLabelWidth, rect.height);
             Rect valueRect = new Rect(subLabelRect.xMax + 4f, rect.y, rect.xMax - (subLabelRect.xMax + 4f), rect.height);
 
-            enableWristFixProp.boolValue = EditorGUI.Toggle(toggleRect, enableWristFixProp.boolValue);
+            enableForearmFixProp.boolValue = EditorGUI.Toggle(toggleRect, enableForearmFixProp.boolValue);
             EditorGUI.LabelField(
                 mainLabelRect,
                 new GUIContent(
@@ -314,7 +314,7 @@ namespace NDMFVRoidArmPatch.Editor
                 )
             );
 
-            using (new EditorGUI.DisabledScope(!enableWristFixProp.boolValue))
+            using (new EditorGUI.DisabledScope(!enableForearmFixProp.boolValue))
             {
                 EditorGUI.LabelField(
                     subLabelRect,
@@ -323,47 +323,47 @@ namespace NDMFVRoidArmPatch.Editor
                         T("手首回転の twist 軸です。", "Twist axis for forearm rotation.")
                     )
                 );
-                DrawAxisToolbar(valueRect, wristRollAxisProp);
+                DrawAxisToolbar(valueRect, forearmRollAxisProp);
 
-                DrawWristPitchAxisRow(component);
+                DrawForearmPitchAxisRow(component);
 
-                using (new EditorGUI.DisabledScope(IsWristTwistBoneModeActive()))
+                using (new EditorGUI.DisabledScope(IsForearmTwistBoneModeActive()))
                 {
                     DrawShoulderSubRow(
                         T("Roll Weight", "Roll Weight"),
-                        wristRollWeightProp,
+                        forearmRollWeightProp,
                         T("手首の roll を前腕へ伝える強さ。", "How strongly hand roll is transferred to the forearm.")
                     );
                 }
 
                 DrawShoulderSubRow(
-                    T($"Thickness ({wristScaleAxes.thicknessAxis})", $"Thickness ({wristScaleAxes.thicknessAxis})"),
-                    wristThicknessScaleProp,
+                    T($"Thickness ({forearmScaleAxes.thicknessAxis})", $"Thickness ({forearmScaleAxes.thicknessAxis})"),
+                    forearmThicknessScaleProp,
                     T(
-                        $"前腕の厚み補正。現在は local {wristScaleAxes.thicknessAxis} に適用されます。",
-                        $"Forearm thickness adjustment. Currently applied on local {wristScaleAxes.thicknessAxis}."
+                        $"前腕の厚み補正。現在は local {forearmScaleAxes.thicknessAxis} に適用されます。",
+                        $"Forearm thickness adjustment. Currently applied on local {forearmScaleAxes.thicknessAxis}."
                     )
                 );
 
                 DrawShoulderSubRow(
-                    T($"Width ({wristScaleAxes.widthAxis})", $"Width ({wristScaleAxes.widthAxis})"),
-                    wristWidthScaleProp,
+                    T($"Width ({forearmScaleAxes.widthAxis})", $"Width ({forearmScaleAxes.widthAxis})"),
+                    forearmWidthScaleProp,
                     T(
-                        $"前腕の幅補正。現在は local {wristScaleAxes.widthAxis} に適用されます。",
-                        $"Forearm width adjustment. Currently applied on local {wristScaleAxes.widthAxis}."
+                        $"前腕の幅補正。現在は local {forearmScaleAxes.widthAxis} に適用されます。",
+                        $"Forearm width adjustment. Currently applied on local {forearmScaleAxes.widthAxis}."
                     )
                 );
 
                 DrawTwistBoneTypeRow();
-                using (new EditorGUI.DisabledScope((WristTwistBoneType)wristTwistBoneTypeProp.enumValueIndex == WristTwistBoneType.None))
+                using (new EditorGUI.DisabledScope((ForearmTwistBoneType)forearmTwistBoneTypeProp.enumValueIndex == ForearmTwistBoneType.None))
                 {
                     DrawTwistBoneCountRow();
                 }
-                DrawWristSkinMaterialRow(component);
+                DrawForearmSkinMaterialRow(component);
             }
         }
 
-        private void DrawWristPitchAxisRow(NDMFVRoidArmPatchComponent component)
+        private void DrawForearmPitchAxisRow(NDMFVRoidArmPatchComponent component)
         {
             EnsurePitchAxis(component);
             Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
@@ -374,24 +374,24 @@ namespace NDMFVRoidArmPatch.Editor
             EditorGUI.LabelField(mainLabelRect, GUIContent.none);
             EditorGUI.LabelField(subLabelRect, new GUIContent(T("Pitch Axis", "Pitch Axis"), T("ForearmTwistExtractorのUp軸。Roll Axisと異なる軸のみ選択可。", "Up axis for ForearmTwistExtractor. Must differ from Roll Axis.")));
 
-            int roll = wristRollAxisProp.enumValueIndex;
+            int roll = forearmRollAxisProp.enumValueIndex;
             var labels = new[] { "X", "Y", "Z" };
-            int current = wristPitchAxisProp.enumValueIndex;
+            int current = forearmPitchAxisProp.enumValueIndex;
             if (current == roll) current = DetectPitchAxis(component, roll);
 
             int next = GUI.Toolbar(valueRect, current, labels);
-            wristPitchAxisProp.enumValueIndex = next;
-            if (wristPitchAxisProp.enumValueIndex == roll)
+            forearmPitchAxisProp.enumValueIndex = next;
+            if (forearmPitchAxisProp.enumValueIndex == roll)
             {
-                wristPitchAxisProp.enumValueIndex = DetectPitchAxis(component, roll);
+                forearmPitchAxisProp.enumValueIndex = DetectPitchAxis(component, roll);
             }
         }
 
         private void EnsurePitchAxis(NDMFVRoidArmPatchComponent component)
         {
-            if (wristPitchAxisProp.enumValueIndex == wristRollAxisProp.enumValueIndex)
+            if (forearmPitchAxisProp.enumValueIndex == forearmRollAxisProp.enumValueIndex)
             {
-                wristPitchAxisProp.enumValueIndex = DetectPitchAxis(component, wristRollAxisProp.enumValueIndex);
+                forearmPitchAxisProp.enumValueIndex = DetectPitchAxis(component, forearmRollAxisProp.enumValueIndex);
             }
         }
 
@@ -428,14 +428,14 @@ namespace NDMFVRoidArmPatch.Editor
             );
         }
 
-        private bool IsWristTwistBoneModeActive()
+        private bool IsForearmTwistBoneModeActive()
         {
-            return wristTwistBoneTypeProp.enumValueIndex != (int)WristTwistBoneType.None;
+            return forearmTwistBoneTypeProp.enumValueIndex != (int)ForearmTwistBoneType.None;
         }
 
-        private void DrawWristSkinMaterialRow(NDMFVRoidArmPatchComponent component)
+        private void DrawForearmSkinMaterialRow(NDMFVRoidArmPatchComponent component)
         {
-            if ((WristTwistBoneType)wristTwistBoneTypeProp.enumValueIndex != WristTwistBoneType.SkinOnly) return;
+            if ((ForearmTwistBoneType)forearmTwistBoneTypeProp.enumValueIndex != ForearmTwistBoneType.SkinOnly) return;
 
             var candidates = CollectMaterialCandidates(component);
             if (candidates.Count == 0)
@@ -444,11 +444,11 @@ namespace NDMFVRoidArmPatch.Editor
                 return;
             }
 
-            int selected = candidates.IndexOf(wristSkinMaterialNameProp.stringValue);
-            if (string.IsNullOrEmpty(wristSkinMaterialNameProp.stringValue) || selected < 0)
+            int selected = candidates.IndexOf(forearmSkinMaterialNameProp.stringValue);
+            if (string.IsNullOrEmpty(forearmSkinMaterialNameProp.stringValue) || selected < 0)
             {
                 string inferred = InferSkinMaterialName(candidates);
-                wristSkinMaterialNameProp.stringValue = inferred;
+                forearmSkinMaterialNameProp.stringValue = inferred;
                 selected = candidates.IndexOf(inferred);
                 if (!ContainsBodyAndSkin(inferred))
                 {
@@ -457,7 +457,7 @@ namespace NDMFVRoidArmPatch.Editor
             }
 
             int next = DrawSubRowPopup(T("Skin Material", "Skin Material"), candidates.ToArray(), selected, T("SkinOnlyモードで使う実マテリアル名。", "Material name used in SkinOnly mode."));
-            wristSkinMaterialNameProp.stringValue = candidates[next];
+            forearmSkinMaterialNameProp.stringValue = candidates[next];
         }
 
         private void DrawTwistBoneTypeRow()
@@ -472,7 +472,7 @@ namespace NDMFVRoidArmPatch.Editor
             EditorGUI.LabelField(subLabelRect, new GUIContent(T("Twist Bone Type", "Twist Bone Type"), GetTwistBoneTypeTooltip()));
 
             string[] labels = { "None", "AllTwist", "SkinOnly" };
-            wristTwistBoneTypeProp.enumValueIndex = EditorGUI.Popup(valueRect, wristTwistBoneTypeProp.enumValueIndex, labels);
+            forearmTwistBoneTypeProp.enumValueIndex = EditorGUI.Popup(valueRect, forearmTwistBoneTypeProp.enumValueIndex, labels);
         }
 
         private void DrawTwistBoneCountRow()
@@ -480,13 +480,13 @@ namespace NDMFVRoidArmPatch.Editor
             string[] countLabels = { "4", "6", "8", "12" };
             int[] enumIndices =
             {
-                (int)WristTwistBoneCount.Count4,
-                (int)WristTwistBoneCount.Count6,
-                (int)WristTwistBoneCount.Count8,
-                (int)WristTwistBoneCount.Count12
+                (int)ForearmTwistBoneCount.Count4,
+                (int)ForearmTwistBoneCount.Count6,
+                (int)ForearmTwistBoneCount.Count8,
+                (int)ForearmTwistBoneCount.Count12
             };
 
-            int selectedIdx = Array.IndexOf(enumIndices, wristTwistBoneCountProp.intValue);
+            int selectedIdx = Array.IndexOf(enumIndices, forearmTwistBoneCountProp.intValue);
             if (selectedIdx < 0) selectedIdx = 2;
 
             Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
@@ -498,7 +498,7 @@ namespace NDMFVRoidArmPatch.Editor
             EditorGUI.LabelField(mainLabelRect, GUIContent.none);
             EditorGUI.LabelField(subLabelRect, new GUIContent(T("Twist Bone Count", "Twist Bone Count"), T("追加する前腕ツイストボーン数。", "Number of forearm twist bones to use.")));
             int next = GUI.Toolbar(valueRect, selectedIdx, countLabels);
-            wristTwistBoneCountProp.intValue = enumIndices[next];
+            forearmTwistBoneCountProp.intValue = enumIndices[next];
         }
 
         private int DrawSubRowPopup(string label, string[] options, int selectedIndex, string tooltip)
@@ -552,13 +552,13 @@ namespace NDMFVRoidArmPatch.Editor
 
         private string GetTwistBoneTypeTooltip()
         {
-            switch ((WristTwistBoneType)wristTwistBoneTypeProp.enumValueIndex)
+            switch ((ForearmTwistBoneType)forearmTwistBoneTypeProp.enumValueIndex)
             {
-                case WristTwistBoneType.None:
+                case ForearmTwistBoneType.None:
                     return T("ツイストボーンを追加しないため、コンストレイント数を節約できます。肘のズレが気になるケースがあります。", "No twist bones are added. This saves constraints, but elbow offset may remain.");
-                case WristTwistBoneType.AllTwist:
+                case ForearmTwistBoneType.AllTwist:
                     return T("前腕・手首ウェイトを持つ頂点をすべてツイストボーンへ再配分します。通常はこちらを使用してください。", "Redistributes all forearm/wrist weighted vertices to twist bones. Recommended.");
-                case WristTwistBoneType.SkinOnly:
+                case ForearmTwistBoneType.SkinOnly:
                     return T("選択した肌マテリアルの頂点のみツイストします。肌以外で前腕・手首ウェイトを持つ頂点は、袖のねじれ破綻を避けるため根本ツイストボーンへ固定します。手袋やリストバンドでは不自然になる場合があります。", "Only selected skin-material vertices are twisted; non-skin forearm/wrist vertices are fixed to root twist and may look odd on gloves/wristbands.");
                 default:
                     return string.Empty;
@@ -687,9 +687,9 @@ namespace NDMFVRoidArmPatch.Editor
             }
         }
 
-        private (string thicknessAxis, string widthAxis) GetWristScaleAxisLabels()
+        private (string thicknessAxis, string widthAxis) GetForearmScaleAxisLabels()
         {
-            var axis = (TwistAxis)wristRollAxisProp.enumValueIndex;
+            var axis = (TwistAxis)forearmRollAxisProp.enumValueIndex;
 
             switch (axis)
             {

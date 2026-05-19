@@ -62,7 +62,7 @@ namespace NDMFVRoidArmPatch.Editor
             if (settings.verboseLog)
             {
                 Debug.Log("[NDMF VRoid Arm Patch] Build pass started.");
-                Debug.Log($"[NDMF VRoid Arm Patch] Aggregated settings: wristType={settings.wristTwistBoneType}, wristCount={settings.wristTwistBoneCount}, wristFix={settings.enableWristFix}");
+                Debug.Log($"[NDMF VRoid Arm Patch] Aggregated settings: forearmType={settings.forearmTwistBoneType}, forearmCount={settings.forearmTwistBoneCount}, forearmFix={settings.enableForearmFix}");
             }
 
             if (settings.enableShoulderFix)
@@ -70,9 +70,9 @@ namespace NDMFVRoidArmPatch.Editor
                 BuildShoulderFix(animator, settings, replaceMap);
             }
 
-            if (settings.enableWristFix)
+            if (settings.enableForearmFix)
             {
-                BuildWristFix(ctx.AvatarRootObject, animator, settings, replaceMap);
+                BuildForearmFix(ctx.AvatarRootObject, animator, settings, replaceMap);
             }
 
             if (settings.enableThumbFix)
@@ -117,15 +117,15 @@ namespace NDMFVRoidArmPatch.Editor
                 shoulderEulerOffset = component.shoulderEulerOffset,
                 upperArmTwistAxis = component.upperArmRollAxis,
                 upperArmTwistWeight = component.upperArmRollWeight,
-                enableWristFix = component.enableWristFix,
-                wristThicknessScale = component.wristThicknessScale,
-                wristWidthScale = component.wristWidthScale,
-                wristTwistAxis = component.wristRollAxis,
-                wristPitchAxis = component.wristPitchAxis,
-                wristTwistWeight = component.wristRollWeight,
-                wristTwistBoneType = component.wristTwistBoneType,
-                wristTwistBoneCount = component.wristTwistBoneCount,
-                wristSkinMaterialName = component.wristSkinMaterialName,
+                enableForearmFix = component.enableForearmFix,
+                forearmThicknessScale = component.forearmThicknessScale,
+                forearmWidthScale = component.forearmWidthScale,
+                forearmTwistAxis = component.forearmRollAxis,
+                forearmPitchAxis = component.forearmPitchAxis,
+                forearmTwistWeight = component.forearmRollWeight,
+                forearmTwistBoneType = component.forearmTwistBoneType,
+                forearmTwistBoneCount = component.forearmTwistBoneCount,
+                forearmSkinMaterialName = component.forearmSkinMaterialName,
                 enableThumbFix = component.enableThumbFix,
                 thumbEulerOffset = component.thumbEulerOffset,
                 constraintMode = component.constraintMode,
@@ -140,9 +140,9 @@ namespace NDMFVRoidArmPatch.Editor
                 BuildShoulderFix(animator, settings, replaceMap);
             }
 
-            if (settings.enableWristFix)
+            if (settings.enableForearmFix)
             {
-                BuildWristFix(avatarRoot, animator, settings, replaceMap);
+                BuildForearmFix(avatarRoot, animator, settings, replaceMap);
             }
 
             if (settings.enableThumbFix)
@@ -253,48 +253,48 @@ namespace NDMFVRoidArmPatch.Editor
             }
         }
 
-        private static void BuildWristFix(
+        private static void BuildForearmFix(
             GameObject avatarRoot,
             Animator animator,
             AggregatedSettings settings,
             Dictionary<Transform, Transform> replaceMap)
         {
-            BuildWristSide(
+            BuildForearmSide(
                 "L",
                 animator.GetBoneTransform(HumanBodyBones.LeftLowerArm),
                 animator.GetBoneTransform(HumanBodyBones.LeftHand),
                 animator.GetBoneTransform(HumanBodyBones.LeftThumbProximal),
                 animator.GetBoneTransform(HumanBodyBones.LeftThumbIntermediate),
                 animator.GetBoneTransform(HumanBodyBones.LeftLittleProximal),
-                settings.wristThicknessScale,
-                settings.wristWidthScale,
-                settings.wristTwistAxis,
-                settings.wristPitchAxis,
-                settings.wristTwistWeight,
-                settings.wristTwistBoneType,
-                settings.wristTwistBoneCount,
-                settings.wristSkinMaterialName,
+                settings.forearmThicknessScale,
+                settings.forearmWidthScale,
+                settings.forearmTwistAxis,
+                settings.forearmPitchAxis,
+                settings.forearmTwistWeight,
+                settings.forearmTwistBoneType,
+                settings.forearmTwistBoneCount,
+                settings.forearmSkinMaterialName,
                 settings.constraintMode,
                 settings.verboseLog,
                 replaceMap,
                 avatarRoot
             );
 
-            BuildWristSide(
+            BuildForearmSide(
                 "R",
                 animator.GetBoneTransform(HumanBodyBones.RightLowerArm),
                 animator.GetBoneTransform(HumanBodyBones.RightHand),
                 animator.GetBoneTransform(HumanBodyBones.RightThumbProximal),
                 animator.GetBoneTransform(HumanBodyBones.RightThumbIntermediate),
                 animator.GetBoneTransform(HumanBodyBones.RightLittleProximal),
-                settings.wristThicknessScale,
-                settings.wristWidthScale,
-                settings.wristTwistAxis,
-                settings.wristPitchAxis,
-                settings.wristTwistWeight,
-                settings.wristTwistBoneType,
-                settings.wristTwistBoneCount,
-                settings.wristSkinMaterialName,
+                settings.forearmThicknessScale,
+                settings.forearmWidthScale,
+                settings.forearmTwistAxis,
+                settings.forearmPitchAxis,
+                settings.forearmTwistWeight,
+                settings.forearmTwistBoneType,
+                settings.forearmTwistBoneCount,
+                settings.forearmSkinMaterialName,
                 settings.constraintMode,
                 settings.verboseLog,
                 replaceMap,
@@ -302,7 +302,7 @@ namespace NDMFVRoidArmPatch.Editor
             );
         }
 
-        private static void BuildWristSide(
+        private static void BuildForearmSide(
             string sideLabel,
             Transform originalLowerArm,
             Transform originalHand,
@@ -311,11 +311,11 @@ namespace NDMFVRoidArmPatch.Editor
             Transform originalLittleProximal,
             float thicknessScale,
             float widthScale,
-            TwistAxis wristTwistAxis,
-            TwistAxis wristPitchAxis,
-            float wristTwistWeight,
-            WristTwistBoneType twistBoneType,
-            WristTwistBoneCount twistBoneCount,
+            TwistAxis forearmTwistAxis,
+            TwistAxis forearmPitchAxis,
+            float forearmTwistWeight,
+            ForearmTwistBoneType twistBoneType,
+            ForearmTwistBoneCount twistBoneCount,
             string skinMaterialName,
             ConstraintMode constraintMode,
             bool verboseLog,
@@ -328,28 +328,28 @@ namespace NDMFVRoidArmPatch.Editor
                 return;
             }
 
-            Transform wristTwistExtractor = null;
+            Transform forearmTwistExtractor = null;
             if (originalHand != null)
             {
-                wristTwistExtractor = CreateChildAlignedBone(originalHand.name + "_ForearmTwistExtractor", originalHand);
+                forearmTwistExtractor = CreateChildAlignedBone(originalHand.name + "_ForearmTwistExtractor", originalHand);
                 if (constraintMode == ConstraintMode.VRChatConstraints)
                 {
-                    AddVRCForearmTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
+                    AddVRCForearmTwistExtractorAimConstraint(forearmTwistExtractor, originalLowerArm, originalHand, sideLabel, forearmTwistAxis, forearmPitchAxis);
                 }
                 else
                 {
-                    AddUnityForearmTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
+                    AddUnityForearmTwistExtractorAimConstraint(forearmTwistExtractor, originalLowerArm, originalHand, sideLabel, forearmTwistAxis, forearmPitchAxis);
                 }
             }
 
-            if (twistBoneType == WristTwistBoneType.None)
+            if (twistBoneType == ForearmTwistBoneType.None)
             {
-                var wristDef = CreateChildAlignedBone(
-                    originalLowerArm.name + "_Wrist_Def",
+                var forearmDef = CreateChildAlignedBone(
+                    originalLowerArm.name + "_Forearm_Def",
                     originalLowerArm
                 );
 
-                wristDef.localScale = BuildWristScaleVector(wristTwistAxis, thicknessScale, widthScale);
+                forearmDef.localScale = BuildForearmScaleVector(forearmTwistAxis, thicknessScale, widthScale);
 
                 if (originalHand == null)
                 {
@@ -357,25 +357,25 @@ namespace NDMFVRoidArmPatch.Editor
                 }
                 else if (constraintMode == ConstraintMode.VRChatConstraints)
                 {
-                    AddVRCWristRotateConstraint(wristDef, wristTwistExtractor, wristTwistAxis, wristTwistWeight);
+                    AddVRCForearmRotateConstraint(forearmDef, forearmTwistExtractor, forearmTwistAxis, forearmTwistWeight);
                 }
                 else
                 {
-                    AddUnityWristRotateConstraint(wristDef, wristTwistExtractor, wristTwistAxis, wristTwistWeight);
+                    AddUnityForearmRotateConstraint(forearmDef, forearmTwistExtractor, forearmTwistAxis, forearmTwistWeight);
                 }
 
-                replaceMap[originalLowerArm] = wristDef;
+                replaceMap[originalLowerArm] = forearmDef;
 
                 if (verboseLog && originalHand != null)
                 {
-                    LogWristDebug(
+                    LogForearmDebug(
                         sideLabel,
-                        "WristDef",
+                        "ForearmDef",
                         originalLowerArm,
                         originalHand,
-                        wristDef,
-                        wristTwistAxis,
-                        wristTwistWeight
+                        forearmDef,
+                        forearmTwistAxis,
+                        forearmTwistWeight
                     );
                 }
             }
@@ -395,7 +395,7 @@ namespace NDMFVRoidArmPatch.Editor
                         $"lowerArm={originalLowerArm.name}, hand={originalHand.name}, " +
                         $"worldAxis=({axis.x:F4},{axis.y:F4},{axis.z:F4}), " +
                         $"distance={Vector3.Distance(originalLowerArm.position, originalHand.position):F6}, " +
-                        $"twistAxis={wristTwistAxis}, count={twistCount}");
+                        $"twistAxis={forearmTwistAxis}, count={twistCount}");
                 }
 
                 var twistBones = new List<Transform>(twistCount);
@@ -411,18 +411,18 @@ namespace NDMFVRoidArmPatch.Editor
                     b.localRotation = Quaternion.identity;
                     twistBones.Add(b);
                     factors.Add(t);
-                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCWristRotateConstraintAllAxes(b, wristTwistExtractor, t);
-                    else AddUnityWristRotateConstraintAllAxes(b, wristTwistExtractor, t);
+                    if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCForearmRotateConstraintAllAxes(b, forearmTwistExtractor, t);
+                    else AddUnityForearmRotateConstraintAllAxes(b, forearmTwistExtractor, t);
 
                     if (verboseLog)
                     {
-                        LogWristDebug(
+                        LogForearmDebug(
                             sideLabel,
                             $"Twist[{i}]",
                             originalLowerArm,
                             originalHand,
                             b,
-                            wristTwistAxis,
+                            forearmTwistAxis,
                             t
                         );
                     }
@@ -448,7 +448,7 @@ namespace NDMFVRoidArmPatch.Editor
 
             if (verboseLog)
             {
-                if (twistBoneType == WristTwistBoneType.None)
+                if (twistBoneType == ForearmTwistBoneType.None)
                 {
                     Debug.Log($"[NDMF VRoid Arm Patch] [{sideLabel}] Forearm_Def mode active.");
                 }
@@ -697,7 +697,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.ApplyConfigurationChanges();
         }
 
-        private static void AddVRCWristRotateConstraint(
+        private static void AddVRCForearmRotateConstraint(
             Transform target,
             Transform handSource,
             TwistAxis twistAxis,
@@ -725,7 +725,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.ApplyConfigurationChanges();
         }
 
-        private static void AddVRCWristRotateConstraintAllAxes(Transform target, Transform source, float weight)
+        private static void AddVRCForearmRotateConstraintAllAxes(Transform target, Transform source, float weight)
         {
             var constraint = target.gameObject.AddComponent<VRCRotationConstraint>();
             constraint.IsActive = true;
@@ -854,7 +854,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.locked = true;
         }
 
-        private static void AddUnityWristRotateConstraint(
+        private static void AddUnityForearmRotateConstraint(
             Transform target,
             Transform handSource,
             TwistAxis twistAxis,
@@ -878,7 +878,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.locked = true;
         }
 
-        private static void AddUnityWristRotateConstraintAllAxes(Transform target, Transform source, float weight)
+        private static void AddUnityForearmRotateConstraintAllAxes(Transform target, Transform source, float weight)
         {
             var constraint = target.gameObject.AddComponent<RotationConstraint>();
             constraint.constraintActive = false;
@@ -937,7 +937,7 @@ namespace NDMFVRoidArmPatch.Editor
 
         // Misc helpers
 
-        private static Vector3 BuildWristScaleVector(TwistAxis twistAxis, float thicknessScale, float widthScale)
+        private static Vector3 BuildForearmScaleVector(TwistAxis twistAxis, float thicknessScale, float widthScale)
         {
             switch (twistAxis)
             {
@@ -1010,7 +1010,7 @@ namespace NDMFVRoidArmPatch.Editor
             Transform thumbIntermediate,
             Transform littleProximal,
             List<Transform> twistBones,
-            WristTwistBoneType twistBoneType,
+            ForearmTwistBoneType twistBoneType,
             string skinMaterialName,
             bool verboseLog)
         {
@@ -1073,8 +1073,8 @@ namespace NDMFVRoidArmPatch.Editor
                     float armW = lowerW + handW;
                     if (armW <= 1e-6f) continue;
 
-                    bool isSkinVertex = twistBoneType != WristTwistBoneType.SkinOnly || IsSkinVertex(smr, vi, skinMaterialName);
-                    if (twistBoneType == WristTwistBoneType.SkinOnly && !isSkinVertex)
+                    bool isSkinVertex = twistBoneType != ForearmTwistBoneType.SkinOnly || IsSkinVertex(smr, vi, skinMaterialName);
+                    if (twistBoneType == ForearmTwistBoneType.SkinOnly && !isSkinVertex)
                     {
                         var nonSkinPairs = new List<(int idx, float w)>(6);
                         float nonSkinToRootTwistW = armW + thumbProximalW + thumbIntermediateW + littleProximalW;
@@ -1193,7 +1193,7 @@ namespace NDMFVRoidArmPatch.Editor
             return bw;
         }
 
-        private static void LogWristDebug(
+        private static void LogForearmDebug(
             string sideLabel,
             string label,
             Transform lowerArm,
@@ -1231,15 +1231,15 @@ namespace NDMFVRoidArmPatch.Editor
                 shoulderEulerOffset = c.shoulderEulerOffset,
                 upperArmTwistAxis = c.upperArmRollAxis,
                 upperArmTwistWeight = c.upperArmRollWeight,
-                enableWristFix = c.enableWristFix,
-                wristThicknessScale = c.wristThicknessScale,
-                wristWidthScale = c.wristWidthScale,
-                wristTwistAxis = c.wristRollAxis,
-                wristPitchAxis = c.wristPitchAxis,
-                wristTwistWeight = c.wristRollWeight,
-                wristTwistBoneType = c.wristTwistBoneType,
-                wristTwistBoneCount = c.wristTwistBoneCount,
-                wristSkinMaterialName = c.wristSkinMaterialName,
+                enableForearmFix = c.enableForearmFix,
+                forearmThicknessScale = c.forearmThicknessScale,
+                forearmWidthScale = c.forearmWidthScale,
+                forearmTwistAxis = c.forearmRollAxis,
+                forearmPitchAxis = c.forearmPitchAxis,
+                forearmTwistWeight = c.forearmRollWeight,
+                forearmTwistBoneType = c.forearmTwistBoneType,
+                forearmTwistBoneCount = c.forearmTwistBoneCount,
+                forearmSkinMaterialName = c.forearmSkinMaterialName,
                 enableThumbFix = c.enableThumbFix,
                 thumbEulerOffset = c.thumbEulerOffset,
                 constraintMode = c.constraintMode,
@@ -1260,7 +1260,7 @@ namespace NDMFVRoidArmPatch.Editor
                 if (c == null) continue;
                 int depth = GetDepthFromRoot(c.transform, root);
                 int score = depth;
-                if (c.wristTwistBoneType != WristTwistBoneType.None) score += 1000;
+                if (c.forearmTwistBoneType != ForearmTwistBoneType.None) score += 1000;
                 if (score > bestScore)
                 {
                     best = c;
@@ -1311,15 +1311,15 @@ namespace NDMFVRoidArmPatch.Editor
             public Vector3 shoulderEulerOffset;
             public TwistAxis upperArmTwistAxis;
             public float upperArmTwistWeight;
-            public bool enableWristFix;
-            public float wristThicknessScale;
-            public float wristWidthScale;
-            public TwistAxis wristTwistAxis;
-            public TwistAxis wristPitchAxis;
-            public float wristTwistWeight;
-            public WristTwistBoneType wristTwistBoneType;
-            public WristTwistBoneCount wristTwistBoneCount;
-            public string wristSkinMaterialName;
+            public bool enableForearmFix;
+            public float forearmThicknessScale;
+            public float forearmWidthScale;
+            public TwistAxis forearmTwistAxis;
+            public TwistAxis forearmPitchAxis;
+            public float forearmTwistWeight;
+            public ForearmTwistBoneType forearmTwistBoneType;
+            public ForearmTwistBoneCount forearmTwistBoneCount;
+            public string forearmSkinMaterialName;
             public bool enableThumbFix;
             public Vector3 thumbEulerOffset;
             public ConstraintMode constraintMode;

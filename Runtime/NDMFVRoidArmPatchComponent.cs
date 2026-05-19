@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using VRC.SDKBase;
 
 namespace NDMFVRoidArmPatch
@@ -11,14 +10,14 @@ namespace NDMFVRoidArmPatch
         Z
     }
 
-    public enum WristTwistBoneType
+    public enum ForearmTwistBoneType
     {
         None,
         AllTwist,
         SkinOnly
     }
 
-    public enum WristTwistBoneCount
+    public enum ForearmTwistBoneCount
     {
         Count4 = 4,
         Count6 = 6,
@@ -53,45 +52,41 @@ namespace NDMFVRoidArmPatch
         public Vector3 shoulderEulerOffset = new Vector3(0f, 0f, -10f);
 
         [Tooltip("Upper arm roll axis. Default is X.")]
-        [FormerlySerializedAs("upperArmTwistAxis")]
         public TwistAxis upperArmRollAxis = TwistAxis.X;
 
         [Tooltip("How strongly the roll axis follows the original upper arm.")]
         [Range(0f, 1f)]
-        [FormerlySerializedAs("upperArmTwistWeight")]
         public float upperArmRollWeight = 1f;
 
         [Header("Forearm")]
         [Tooltip("Enable forearm correction.")]
-        public bool enableWristFix = true;
+        public bool enableForearmFix = true;
 
         [Tooltip("Forearm thickness scale.")]
-        public float wristThicknessScale = 1f;
+        public float forearmThicknessScale = 1f;
 
         [Tooltip("Forearm width scale.")]
-        public float wristWidthScale = 0.92f;
+        public float forearmWidthScale = 0.92f;
 
         [Tooltip("Forearm roll axis. Default is X.")]
-        [FormerlySerializedAs("wristTwistAxis")]
-        public TwistAxis wristRollAxis = TwistAxis.X;
+        public TwistAxis forearmRollAxis = TwistAxis.X;
 
         [Tooltip("Forearm pitch axis used for twist extractor up vector.")]
-        public TwistAxis wristPitchAxis = TwistAxis.Z;
+        public TwistAxis forearmPitchAxis = TwistAxis.Z;
 
         [Tooltip("How strongly forearm roll follows the hand.")]
         [Range(0f, 1f)]
-        [FormerlySerializedAs("wristTwistWeight")]
-        public float wristRollWeight = 1f;
+        public float forearmRollWeight = 1f;
 
 
         [Tooltip("Forearm twist bone mode. None keeps current behavior.")]
-        public WristTwistBoneType wristTwistBoneType = WristTwistBoneType.None;
+        public ForearmTwistBoneType forearmTwistBoneType = ForearmTwistBoneType.None;
 
         [Tooltip("Number of forearm twist bones to use.")]
-        public WristTwistBoneCount wristTwistBoneCount = WristTwistBoneCount.Count8;
+        public ForearmTwistBoneCount forearmTwistBoneCount = ForearmTwistBoneCount.Count8;
 
         [Tooltip("Skin material name used in Forearm SkinOnly mode.")]
-        public string wristSkinMaterialName = string.Empty;
+        public string forearmSkinMaterialName = string.Empty;
 
         [Header("Thumb")]
         [Tooltip("Enable thumb correction.")]
