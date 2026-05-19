@@ -270,6 +270,7 @@ namespace NDMFVRoidArmPatch.Editor
                 settings.wristTwistWeight,
                 settings.wristTwistBoneType,
                 settings.wristTwistBoneCount,
+                settings.wristSkinMaterialName,
                 settings.constraintMode,
                 settings.verboseLog,
                 replaceMap,
@@ -287,6 +288,7 @@ namespace NDMFVRoidArmPatch.Editor
                 settings.wristTwistWeight,
                 settings.wristTwistBoneType,
                 settings.wristTwistBoneCount,
+                settings.wristSkinMaterialName,
                 settings.constraintMode,
                 settings.verboseLog,
                 replaceMap,
@@ -305,6 +307,7 @@ namespace NDMFVRoidArmPatch.Editor
             float wristTwistWeight,
             WristTwistBoneType twistBoneType,
             WristTwistBoneCount twistBoneCount,
+            string skinMaterialName,
             ConstraintMode constraintMode,
             bool verboseLog,
             Dictionary<Transform, Transform> replaceMap,
@@ -416,7 +419,7 @@ namespace NDMFVRoidArmPatch.Editor
                     }
                 }
                 replaceMap[originalLowerArm] = twistBones[0];
-                ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, twistBoneType, settings.wristSkinMaterialName, verboseLog);
+                ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, twistBoneType, skinMaterialName, verboseLog);
 
                 if (verboseLog)
                 {
@@ -1045,18 +1048,18 @@ namespace NDMFVRoidArmPatch.Editor
                     bool isSkinVertex = twistBoneType != WristTwistBoneType.SkinOnly || IsSkinVertex(smr, vi, skinMaterialName);
                     if (twistBoneType == WristTwistBoneType.SkinOnly && !isSkinVertex)
                     {
-                        var pairs = new List<(int idx, float w)>(6);
-                        AddOrAccumulate(pairs, twistBoneIndices[0], armW);
-                        AddOrAccumulate(pairs, bw.boneIndex0, bw.weight0);
-                        AddOrAccumulate(pairs, bw.boneIndex1, bw.weight1);
-                        AddOrAccumulate(pairs, bw.boneIndex2, bw.weight2);
-                        AddOrAccumulate(pairs, bw.boneIndex3, bw.weight3);
-                        RemoveBone(pairs, lowerIdx);
-                        RemoveBone(pairs, handIdx);
-                        pairs.Sort((x, y) => y.w.CompareTo(x.w));
-                        if (pairs.Count > 4) pairs.RemoveRange(4, pairs.Count - 4);
-                        Normalize(pairs);
-                        weights[vi] = ToBoneWeight(pairs);
+                        var nonSkinPairs = new List<(int idx, float w)>(6);
+                        AddOrAccumulate(nonSkinPairs, twistBoneIndices[0], armW);
+                        AddOrAccumulate(nonSkinPairs, bw.boneIndex0, bw.weight0);
+                        AddOrAccumulate(nonSkinPairs, bw.boneIndex1, bw.weight1);
+                        AddOrAccumulate(nonSkinPairs, bw.boneIndex2, bw.weight2);
+                        AddOrAccumulate(nonSkinPairs, bw.boneIndex3, bw.weight3);
+                        RemoveBone(nonSkinPairs, lowerIdx);
+                        RemoveBone(nonSkinPairs, handIdx);
+                        nonSkinPairs.Sort((x, y) => y.w.CompareTo(x.w));
+                        if (nonSkinPairs.Count > 4) nonSkinPairs.RemoveRange(4, nonSkinPairs.Count - 4);
+                        Normalize(nonSkinPairs);
+                        weights[vi] = ToBoneWeight(nonSkinPairs);
                         continue;
                     }
 
