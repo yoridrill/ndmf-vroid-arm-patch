@@ -125,6 +125,7 @@ namespace NDMFVRoidArmPatch.Editor
                 wristTwistWeight = component.wristRollWeight,
                 wristTwistBoneType = component.wristTwistBoneType,
                 wristTwistBoneCount = component.wristTwistBoneCount,
+                wristSkinMaterialName = component.wristSkinMaterialName,
                 enableThumbFix = component.enableThumbFix,
                 thumbEulerOffset = component.thumbEulerOffset,
                 constraintMode = component.constraintMode,
@@ -415,7 +416,7 @@ namespace NDMFVRoidArmPatch.Editor
                     }
                 }
                 replaceMap[originalLowerArm] = twistBones[0];
-                ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, verboseLog);
+                ReweightForearmVerticesToTwistBones(avatarRoot, originalLowerArm, originalHand, twistBones, twistBoneType, settings.wristSkinMaterialName, verboseLog);
 
                 if (verboseLog)
                 {
@@ -984,6 +985,8 @@ namespace NDMFVRoidArmPatch.Editor
             Transform lowerArm,
             Transform hand,
             List<Transform> twistBones,
+            WristTwistBoneType twistBoneType,
+            string skinMaterialName,
             bool verboseLog)
         {
             var renderers = avatarRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true);
@@ -1035,7 +1038,27 @@ namespace NDMFVRoidArmPatch.Editor
                 {
                     var bw = weights[vi];
                     float lowerW = GetWeightForBoneIndex(bw, lowerIdx);
-                    if (lowerW <= 1e-6f) continue;
+                    float handW = GetWeightForBoneIndex(bw, handIdx);
+                    float armW = lowerW + handW;
+                    if (armW <= 1e-6f) continue;
+
+                    bool isSkinVertex = twistBoneType != WristTwistBoneType.SkinOnly || IsSkinVertex(smr, vi, skinMaterialName);
+                    if (twistBoneType == WristTwistBoneType.SkinOnly && !isSkinVertex)
+                    {
+                        var pairs = new List<(int idx, float w)>(6);
+                        AddOrAccumulate(pairs, twistBoneIndices[0], armW);
+                        AddOrAccumulate(pairs, bw.boneIndex0, bw.weight0);
+                        AddOrAccumulate(pairs, bw.boneIndex1, bw.weight1);
+                        AddOrAccumulate(pairs, bw.boneIndex2, bw.weight2);
+                        AddOrAccumulate(pairs, bw.boneIndex3, bw.weight3);
+                        RemoveBone(pairs, lowerIdx);
+                        RemoveBone(pairs, handIdx);
+                        pairs.Sort((x, y) => y.w.CompareTo(x.w));
+                        if (pairs.Count > 4) pairs.RemoveRange(4, pairs.Count - 4);
+                        Normalize(pairs);
+                        weights[vi] = ToBoneWeight(pairs);
+                        continue;
+                    }
 
                     Vector3 world = smr.transform.TransformPoint(vertices[vi]);
                     float t = Mathf.Clamp01(Vector3.Dot(world - a, axis) / dist);
@@ -1048,6 +1071,7 @@ namespace NDMFVRoidArmPatch.Editor
                     float w1 = i0 == i1 ? 0f : s;
 
                     var pairs = new List<(int idx, float w)>(6);
+                    if (lowerW <= 1e-6f) continue;
                     AddOrAccumulate(pairs, twistBoneIndices[i0], lowerW * w0);
                     if (w1 > 0f) AddOrAccumulate(pairs, twistBoneIndices[i1], lowerW * w1);
                     AddOrAccumulate(pairs, bw.boneIndex0, bw.weight0);
@@ -1055,6 +1079,7 @@ namespace NDMFVRoidArmPatch.Editor
                     AddOrAccumulate(pairs, bw.boneIndex2, bw.weight2);
                     AddOrAccumulate(pairs, bw.boneIndex3, bw.weight3);
                     RemoveBone(pairs, lowerIdx);
+                    RemoveBone(pairs, handIdx);
                     pairs.Sort((x,y)=>y.w.CompareTo(x.w));
                     if (pairs.Count > 4) pairs.RemoveRange(4, pairs.Count - 4);
                     Normalize(pairs);
@@ -1067,6 +1092,26 @@ namespace NDMFVRoidArmPatch.Editor
                 smr.bones = bones.ToArray();
                 if (verboseLog) Debug.Log($"[NDMF VRoid Arm Patch] Twist reweight: {GetPath(smr.transform)}");
             }
+        }
+
+        private static bool IsSkinVertex(SkinnedMeshRenderer smr, int vertexIndex, string skinMaterialName)
+        {
+            if (smr == null || smr.sharedMesh == null || string.IsNullOrEmpty(skinMaterialName)) return false;
+            var mesh = smr.sharedMesh;
+            var materials = smr.sharedMaterials;
+            int subMeshCount = mesh.subMeshCount;
+            int count = Mathf.Min(subMeshCount, materials != null ? materials.Length : 0);
+            for (int sub = 0; sub < count; sub++)
+            {
+                var mat = materials[sub];
+                if (mat == null || !string.Equals(mat.name, skinMaterialName, StringComparison.Ordinal)) continue;
+                var triangles = mesh.GetTriangles(sub);
+                for (int i = 0; i < triangles.Length; i++)
+                {
+                    if (triangles[i] == vertexIndex) return true;
+                }
+            }
+            return false;
         }
 
         private static float GetWeightForBoneIndex(BoneWeight bw, int boneIndex)
@@ -1160,6 +1205,7 @@ namespace NDMFVRoidArmPatch.Editor
                 wristTwistWeight = c.wristRollWeight,
                 wristTwistBoneType = c.wristTwistBoneType,
                 wristTwistBoneCount = c.wristTwistBoneCount,
+                wristSkinMaterialName = c.wristSkinMaterialName,
                 enableThumbFix = c.enableThumbFix,
                 thumbEulerOffset = c.thumbEulerOffset,
                 constraintMode = c.constraintMode,
@@ -1239,6 +1285,7 @@ namespace NDMFVRoidArmPatch.Editor
             public float wristTwistWeight;
             public WristTwistBoneType wristTwistBoneType;
             public WristTwistBoneCount wristTwistBoneCount;
+            public string wristSkinMaterialName;
             public bool enableThumbFix;
             public Vector3 thumbEulerOffset;
             public ConstraintMode constraintMode;
