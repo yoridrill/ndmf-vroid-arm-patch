@@ -419,9 +419,7 @@ namespace NDMFVRoidArmPatch.Editor
                     var b = CreateChildAlignedBone($"{originalLowerArm.name}_Twist_{i:D2}", twistAim);
                     b.localPosition = localDir * (localDist * t);
                     b.localRotation = Quaternion.identity;
-                    float thickness = Mathf.Lerp(thicknessRootScale, thicknessTipScale, t);
-                    float width = Mathf.Lerp(widthRootScale, widthTipScale, t);
-                    b.localScale = BuildForearmScaleVector(forearmTwistAxis, thickness, width);
+                    b.localScale = Vector3.one;
                     twistBones.Add(b);
                     factors.Add(t);
                     if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCForearmRotateConstraintAllAxes(b, forearmTwistExtractor, t);
@@ -452,6 +450,13 @@ namespace NDMFVRoidArmPatch.Editor
                     twistBoneType,
                     skinMaterialName,
                     verboseLog);
+                ApplyForearmTwistBoneScales(
+                    twistBones,
+                    forearmTwistAxis,
+                    thicknessRootScale,
+                    thicknessTipScale,
+                    widthRootScale,
+                    widthTipScale);
 
                 if (verboseLog)
                 {
@@ -1159,6 +1164,28 @@ namespace NDMFVRoidArmPatch.Editor
                 }
             }
             return false;
+        }
+
+        private static void ApplyForearmTwistBoneScales(
+            List<Transform> twistBones,
+            TwistAxis forearmTwistAxis,
+            float thicknessRootScale,
+            float thicknessTipScale,
+            float widthRootScale,
+            float widthTipScale)
+        {
+            if (twistBones == null || twistBones.Count == 0) return;
+            int n = twistBones.Count;
+            for (int i = 0; i < n; i++)
+            {
+                float t = n <= 1 ? 1f : (float)i / (n - 1);
+                float thickness = Mathf.Lerp(thicknessRootScale, thicknessTipScale, t);
+                float width = Mathf.Lerp(widthRootScale, widthTipScale, t);
+                if (twistBones[i] != null)
+                {
+                    twistBones[i].localScale = BuildForearmScaleVector(forearmTwistAxis, thickness, width);
+                }
+            }
         }
 
         private static float GetWeightForBoneIndex(BoneWeight bw, int boneIndex)
