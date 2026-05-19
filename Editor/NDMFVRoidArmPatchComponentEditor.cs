@@ -306,10 +306,10 @@ namespace NDMFVRoidArmPatch.Editor
             EditorGUI.LabelField(
                 mainLabelRect,
                 new GUIContent(
-                    T("Wrist Fix", "Wrist Fix"),
+                    T("Forearm Fix", "Forearm Fix"),
                     T(
                         "前腕の見た目骨にスケール補正と手首 twist 補正を同時に適用します。",
-                        "Applies both scale correction and wrist twist correction to the forearm display bone."
+                        "Applies both scale correction and forearm twist correction to the forearm display bone."
                     )
                 )
             );
@@ -320,7 +320,7 @@ namespace NDMFVRoidArmPatch.Editor
                     subLabelRect,
                     new GUIContent(
                         T("Roll Axis", "Roll Axis"),
-                        T("手首回転の twist 軸です。", "Twist axis for wrist rotation.")
+                        T("手首回転の twist 軸です。", "Twist axis for forearm rotation.")
                     )
                 );
                 DrawAxisToolbar(valueRect, wristRollAxisProp);
@@ -372,7 +372,7 @@ namespace NDMFVRoidArmPatch.Editor
             Rect subLabelRect = new Rect(mainLabelRect.xMax + Gap, rect.y, SubLabelWidth, rect.height);
             Rect valueRect = new Rect(subLabelRect.xMax + 4f, rect.y, rect.xMax - (subLabelRect.xMax + 4f), rect.height);
             EditorGUI.LabelField(mainLabelRect, GUIContent.none);
-            EditorGUI.LabelField(subLabelRect, new GUIContent(T("Pitch Axis", "Pitch Axis"), T("WristTwistExtractorのUp軸。Roll Axisと異なる軸のみ選択可。", "Up axis for WristTwistExtractor. Must differ from Roll Axis.")));
+            EditorGUI.LabelField(subLabelRect, new GUIContent(T("Pitch Axis", "Pitch Axis"), T("ForearmTwistExtractorのUp軸。Roll Axisと異なる軸のみ選択可。", "Up axis for ForearmTwistExtractor. Must differ from Roll Axis.")));
 
             int roll = wristRollAxisProp.enumValueIndex;
             var labels = new[] { "X", "Y", "Z" };

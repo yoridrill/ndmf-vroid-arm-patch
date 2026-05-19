@@ -324,21 +324,21 @@ namespace NDMFVRoidArmPatch.Editor
         {
             if (originalLowerArm == null)
             {
-                Debug.LogWarning($"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist fix skipped. LowerArm not found.");
+                Debug.LogWarning($"[NDMF VRoid Arm Patch] [{sideLabel}] Forearm fix skipped. LowerArm not found.");
                 return;
             }
 
             Transform wristTwistExtractor = null;
             if (originalHand != null)
             {
-                wristTwistExtractor = CreateChildAlignedBone(originalHand.name + "_WristTwistExtractor", originalHand);
+                wristTwistExtractor = CreateChildAlignedBone(originalHand.name + "_ForearmTwistExtractor", originalHand);
                 if (constraintMode == ConstraintMode.VRChatConstraints)
                 {
-                    AddVRCWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
+                    AddVRCForearmTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
                 }
                 else
                 {
-                    AddUnityWristTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
+                    AddUnityForearmTwistExtractorAimConstraint(wristTwistExtractor, originalLowerArm, originalHand, sideLabel, wristTwistAxis, wristPitchAxis);
                 }
             }
 
@@ -353,7 +353,7 @@ namespace NDMFVRoidArmPatch.Editor
 
                 if (originalHand == null)
                 {
-                    Debug.LogWarning($"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist rotate part skipped. Hand not found.");
+                    Debug.LogWarning($"[NDMF VRoid Arm Patch] [{sideLabel}] Forearm rotate part skipped. Hand not found.");
                 }
                 else if (constraintMode == ConstraintMode.VRChatConstraints)
                 {
@@ -450,7 +450,7 @@ namespace NDMFVRoidArmPatch.Editor
             {
                 if (twistBoneType == WristTwistBoneType.None)
                 {
-                    Debug.Log($"[NDMF VRoid Arm Patch] [{sideLabel}] Wrist_Def mode active.");
+                    Debug.Log($"[NDMF VRoid Arm Patch] [{sideLabel}] Forearm_Def mode active.");
                 }
                 else
                 {
@@ -646,7 +646,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.ApplyConfigurationChanges();
         }
 
-        private static void AddVRCWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel, TwistAxis rollAxis, TwistAxis pitchAxis)
+        private static void AddVRCForearmTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel, TwistAxis rollAxis, TwistAxis pitchAxis)
         {
             var constraint = target.gameObject.AddComponent<VRCAimConstraint>();
             var localAim = lowerArm.localPosition;
@@ -810,7 +810,7 @@ namespace NDMFVRoidArmPatch.Editor
             constraint.locked = true;
         }
 
-        private static void AddUnityWristTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel, TwistAxis rollAxis, TwistAxis pitchAxis)
+        private static void AddUnityForearmTwistExtractorAimConstraint(Transform target, Transform lowerArm, Transform hand, string sideLabel, TwistAxis rollAxis, TwistAxis pitchAxis)
         {
             var constraint = target.gameObject.AddComponent<AimConstraint>();
             constraint.constraintActive = false;
