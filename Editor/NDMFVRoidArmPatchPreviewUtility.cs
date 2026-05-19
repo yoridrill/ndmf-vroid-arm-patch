@@ -363,8 +363,10 @@ namespace NDMFVRoidArmPatch.Editor
             dst.upperArmRollAxis = src.upperArmRollAxis;
             dst.upperArmRollWeight = src.upperArmRollWeight;
             dst.enableForearmFix = src.enableForearmFix;
-            dst.forearmThicknessScale = src.forearmThicknessScale;
-            dst.forearmWidthScale = src.forearmWidthScale;
+            dst.forearmThicknessRootScale = src.forearmThicknessRootScale;
+            dst.forearmThicknessTipScale = src.forearmThicknessTipScale;
+            dst.forearmWidthRootScale = src.forearmWidthRootScale;
+            dst.forearmWidthTipScale = src.forearmWidthTipScale;
             dst.forearmRollAxis = src.forearmRollAxis;
             dst.forearmPitchAxis = src.forearmPitchAxis;
             dst.forearmRollWeight = src.forearmRollWeight;

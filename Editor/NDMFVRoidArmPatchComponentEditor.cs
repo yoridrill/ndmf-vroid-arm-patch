@@ -48,8 +48,10 @@ namespace NDMFVRoidArmPatch.Editor
         private SerializedProperty upperArmRollWeightProp;
 
         private SerializedProperty enableForearmFixProp;
-        private SerializedProperty forearmThicknessScaleProp;
-        private SerializedProperty forearmWidthScaleProp;
+        private SerializedProperty forearmThicknessRootScaleProp;
+        private SerializedProperty forearmThicknessTipScaleProp;
+        private SerializedProperty forearmWidthRootScaleProp;
+        private SerializedProperty forearmWidthTipScaleProp;
         private SerializedProperty forearmRollAxisProp;
         private SerializedProperty forearmPitchAxisProp;
         private SerializedProperty forearmRollWeightProp;
@@ -81,8 +83,10 @@ namespace NDMFVRoidArmPatch.Editor
             upperArmRollWeightProp = serializedObject.FindProperty("upperArmRollWeight");
 
             enableForearmFixProp = serializedObject.FindProperty("enableForearmFix");
-            forearmThicknessScaleProp = serializedObject.FindProperty("forearmThicknessScale");
-            forearmWidthScaleProp = serializedObject.FindProperty("forearmWidthScale");
+            forearmThicknessRootScaleProp = serializedObject.FindProperty("forearmThicknessRootScale");
+            forearmThicknessTipScaleProp = serializedObject.FindProperty("forearmThicknessTipScale");
+            forearmWidthRootScaleProp = serializedObject.FindProperty("forearmWidthRootScale");
+            forearmWidthTipScaleProp = serializedObject.FindProperty("forearmWidthTipScale");
             forearmRollAxisProp = serializedObject.FindProperty("forearmRollAxis");
             forearmPitchAxisProp = serializedObject.FindProperty("forearmPitchAxis");
             forearmRollWeightProp = serializedObject.FindProperty("forearmRollWeight");
@@ -336,23 +340,8 @@ namespace NDMFVRoidArmPatch.Editor
                     );
                 }
 
-                DrawShoulderSubRow(
-                    T($"Thickness ({forearmScaleAxes.thicknessAxis})", $"Thickness ({forearmScaleAxes.thicknessAxis})"),
-                    forearmThicknessScaleProp,
-                    T(
-                        $"前腕の厚み補正。現在は local {forearmScaleAxes.thicknessAxis} に適用されます。",
-                        $"Forearm thickness adjustment. Currently applied on local {forearmScaleAxes.thicknessAxis}."
-                    )
-                );
-
-                DrawShoulderSubRow(
-                    T($"Width ({forearmScaleAxes.widthAxis})", $"Width ({forearmScaleAxes.widthAxis})"),
-                    forearmWidthScaleProp,
-                    T(
-                        $"前腕の幅補正。現在は local {forearmScaleAxes.widthAxis} に適用されます。",
-                        $"Forearm width adjustment. Currently applied on local {forearmScaleAxes.widthAxis}."
-                    )
-                );
+                DrawRootTipScaleRow(T($"Thickness ({forearmScaleAxes.thicknessAxis})", $"Thickness ({forearmScaleAxes.thicknessAxis})"), forearmThicknessRootScaleProp, forearmThicknessTipScaleProp);
+                DrawRootTipScaleRow(T($"Width ({forearmScaleAxes.widthAxis})", $"Width ({forearmScaleAxes.widthAxis})"), forearmWidthRootScaleProp, forearmWidthTipScaleProp);
 
                 DrawTwistBoneTypeRow();
                 using (new EditorGUI.DisabledScope((ForearmTwistBoneType)forearmTwistBoneTypeProp.enumValueIndex == ForearmTwistBoneType.None))
@@ -385,6 +374,27 @@ namespace NDMFVRoidArmPatch.Editor
             {
                 forearmPitchAxisProp.enumValueIndex = DetectPitchAxis(component, roll);
             }
+        }
+
+        private void DrawRootTipScaleRow(string label, SerializedProperty rootProp, SerializedProperty tipProp)
+        {
+            Rect rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            Rect spacerRect = new Rect(rect.x, rect.y, ToggleWidth, rect.height);
+            Rect mainLabelRect = new Rect(spacerRect.xMax + 2f, rect.y, MainLabelWidth, rect.height);
+            Rect subLabelRect = new Rect(mainLabelRect.xMax + Gap, rect.y, SubLabelWidth, rect.height);
+            Rect valueRect = new Rect(subLabelRect.xMax + 4f, rect.y, rect.xMax - (subLabelRect.xMax + 4f), rect.height);
+            EditorGUI.LabelField(mainLabelRect, GUIContent.none);
+            EditorGUI.LabelField(subLabelRect, label);
+
+            float half = (valueRect.width - 8f) * 0.5f;
+            Rect rootLabelRect = new Rect(valueRect.x, valueRect.y, 34f, valueRect.height);
+            Rect rootFieldRect = new Rect(rootLabelRect.xMax, valueRect.y, half - 34f, valueRect.height);
+            Rect tipLabelRect = new Rect(valueRect.x + half + 8f, valueRect.y, 24f, valueRect.height);
+            Rect tipFieldRect = new Rect(tipLabelRect.xMax, valueRect.y, half - 24f, valueRect.height);
+            EditorGUI.LabelField(rootLabelRect, "Root");
+            rootProp.floatValue = EditorGUI.FloatField(rootFieldRect, rootProp.floatValue);
+            EditorGUI.LabelField(tipLabelRect, "Tip");
+            tipProp.floatValue = EditorGUI.FloatField(tipFieldRect, tipProp.floatValue);
         }
 
         private void EnsurePitchAxis(NDMFVRoidArmPatchComponent component)

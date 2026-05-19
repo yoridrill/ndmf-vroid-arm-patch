@@ -64,13 +64,19 @@ namespace NDMFVRoidArmPatch
         [FormerlySerializedAs("enableWristFix")]
         public bool enableForearmFix = true;
 
-        [Tooltip("Forearm thickness scale.")]
+        [Tooltip("Forearm thickness scale at root side.")]
         [FormerlySerializedAs("wristThicknessScale")]
-        public float forearmThicknessScale = 1f;
+        public float forearmThicknessRootScale = 0.96f;
 
-        [Tooltip("Forearm width scale.")]
+        [Tooltip("Forearm thickness scale at tip side.")]
+        public float forearmThicknessTipScale = 1.00f;
+
+        [Tooltip("Forearm width scale at root side.")]
         [FormerlySerializedAs("wristWidthScale")]
-        public float forearmWidthScale = 0.92f;
+        public float forearmWidthRootScale = 1.00f;
+
+        [Tooltip("Forearm width scale at tip side.")]
+        public float forearmWidthTipScale = 0.92f;
 
         [Tooltip("Forearm roll axis. Default is X.")]
         [FormerlySerializedAs("wristRollAxis")]

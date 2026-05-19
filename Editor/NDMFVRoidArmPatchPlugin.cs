@@ -118,8 +118,10 @@ namespace NDMFVRoidArmPatch.Editor
                 upperArmTwistAxis = component.upperArmRollAxis,
                 upperArmTwistWeight = component.upperArmRollWeight,
                 enableForearmFix = component.enableForearmFix,
-                forearmThicknessScale = component.forearmThicknessScale,
-                forearmWidthScale = component.forearmWidthScale,
+                forearmThicknessRootScale = component.forearmThicknessRootScale,
+                forearmThicknessTipScale = component.forearmThicknessTipScale,
+                forearmWidthRootScale = component.forearmWidthRootScale,
+                forearmWidthTipScale = component.forearmWidthTipScale,
                 forearmTwistAxis = component.forearmRollAxis,
                 forearmPitchAxis = component.forearmPitchAxis,
                 forearmTwistWeight = component.forearmRollWeight,
@@ -266,8 +268,10 @@ namespace NDMFVRoidArmPatch.Editor
                 animator.GetBoneTransform(HumanBodyBones.LeftThumbProximal),
                 animator.GetBoneTransform(HumanBodyBones.LeftThumbIntermediate),
                 animator.GetBoneTransform(HumanBodyBones.LeftLittleProximal),
-                settings.forearmThicknessScale,
-                settings.forearmWidthScale,
+                settings.forearmThicknessRootScale,
+                settings.forearmThicknessTipScale,
+                settings.forearmWidthRootScale,
+                settings.forearmWidthTipScale,
                 settings.forearmTwistAxis,
                 settings.forearmPitchAxis,
                 settings.forearmTwistWeight,
@@ -287,8 +291,10 @@ namespace NDMFVRoidArmPatch.Editor
                 animator.GetBoneTransform(HumanBodyBones.RightThumbProximal),
                 animator.GetBoneTransform(HumanBodyBones.RightThumbIntermediate),
                 animator.GetBoneTransform(HumanBodyBones.RightLittleProximal),
-                settings.forearmThicknessScale,
-                settings.forearmWidthScale,
+                settings.forearmThicknessRootScale,
+                settings.forearmThicknessTipScale,
+                settings.forearmWidthRootScale,
+                settings.forearmWidthTipScale,
                 settings.forearmTwistAxis,
                 settings.forearmPitchAxis,
                 settings.forearmTwistWeight,
@@ -309,8 +315,10 @@ namespace NDMFVRoidArmPatch.Editor
             Transform originalThumbProximal,
             Transform originalThumbIntermediate,
             Transform originalLittleProximal,
-            float thicknessScale,
-            float widthScale,
+            float thicknessRootScale,
+            float thicknessTipScale,
+            float widthRootScale,
+            float widthTipScale,
             TwistAxis forearmTwistAxis,
             TwistAxis forearmPitchAxis,
             float forearmTwistWeight,
@@ -349,7 +357,9 @@ namespace NDMFVRoidArmPatch.Editor
                     originalLowerArm
                 );
 
-                forearmDef.localScale = BuildForearmScaleVector(forearmTwistAxis, thicknessScale, widthScale);
+                float avgThickness = (thicknessRootScale + thicknessTipScale) * 0.5f;
+                float avgWidth = (widthRootScale + widthTipScale) * 0.5f;
+                forearmDef.localScale = BuildForearmScaleVector(forearmTwistAxis, avgThickness, avgWidth);
 
                 if (originalHand == null)
                 {
@@ -409,6 +419,9 @@ namespace NDMFVRoidArmPatch.Editor
                     var b = CreateChildAlignedBone($"{originalLowerArm.name}_Twist_{i:D2}", twistAim);
                     b.localPosition = localDir * (localDist * t);
                     b.localRotation = Quaternion.identity;
+                    float thickness = Mathf.Lerp(thicknessRootScale, thicknessTipScale, t);
+                    float width = Mathf.Lerp(widthRootScale, widthTipScale, t);
+                    b.localScale = BuildForearmScaleVector(forearmTwistAxis, thickness, width);
                     twistBones.Add(b);
                     factors.Add(t);
                     if (constraintMode == ConstraintMode.VRChatConstraints) AddVRCForearmRotateConstraintAllAxes(b, forearmTwistExtractor, t);
@@ -1232,8 +1245,10 @@ namespace NDMFVRoidArmPatch.Editor
                 upperArmTwistAxis = c.upperArmRollAxis,
                 upperArmTwistWeight = c.upperArmRollWeight,
                 enableForearmFix = c.enableForearmFix,
-                forearmThicknessScale = c.forearmThicknessScale,
-                forearmWidthScale = c.forearmWidthScale,
+                forearmThicknessRootScale = c.forearmThicknessRootScale,
+                forearmThicknessTipScale = c.forearmThicknessTipScale,
+                forearmWidthRootScale = c.forearmWidthRootScale,
+                forearmWidthTipScale = c.forearmWidthTipScale,
                 forearmTwistAxis = c.forearmRollAxis,
                 forearmPitchAxis = c.forearmPitchAxis,
                 forearmTwistWeight = c.forearmRollWeight,
@@ -1312,8 +1327,10 @@ namespace NDMFVRoidArmPatch.Editor
             public TwistAxis upperArmTwistAxis;
             public float upperArmTwistWeight;
             public bool enableForearmFix;
-            public float forearmThicknessScale;
-            public float forearmWidthScale;
+            public float forearmThicknessRootScale;
+            public float forearmThicknessTipScale;
+            public float forearmWidthRootScale;
+            public float forearmWidthTipScale;
             public TwistAxis forearmTwistAxis;
             public TwistAxis forearmPitchAxis;
             public float forearmTwistWeight;
